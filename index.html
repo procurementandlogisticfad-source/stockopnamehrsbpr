@@ -6,7 +6,7 @@
     <title>Sock Opname Mobile - PT HRS Site BPR</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="icon" type="image/png" href="logo.png">
-     <style>
+    <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: antialiased; background-color: #f8fafc; }
         .page-content { display: none; }
@@ -21,6 +21,7 @@
         .modal-all-items { position: fixed; inset: 0; background: white; z-index: 1000; display: none; flex-direction: column; }
         .modal-all-items.active { display: flex; }
         .empty-state { padding: 60px 20px; text-align: center; color: #94a3b8; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; }
+        .back-btn { display: flex; items-center: center; gap: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #3b82f6; margin-bottom: 16px; }
     </style>
 </head>
 <body class="text-slate-900">
@@ -75,6 +76,9 @@
         
         <!-- Page: Opname (Scan) -->
         <section id="pageInputList" class="page-content active space-y-4">
+            <button onclick="navigateTo('pageDashboard', 'Overview')" class="back-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M15 19l-7-7 7-7" /></svg> Kembali ke Dashboard
+            </button>
             <div class="flex justify-between items-center px-1">
                 <h2 class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Input Opname (SOH > 0)</h2>
                 <span id="itemCountLabel" class="text-[9px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">0 Item</span>
@@ -84,12 +88,18 @@
 
         <!-- Page: History -->
         <section id="pageHistory" class="page-content space-y-4">
+            <button onclick="navigateTo('pageDashboard', 'Overview')" class="back-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M15 19l-7-7 7-7" /></svg> Kembali ke Dashboard
+            </button>
             <h2 class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Riwayat Perubahan</h2>
             <div id="historyList" class="space-y-3"></div>
         </section>
 
         <!-- Page: Deviasi -->
         <section id="pageDeviasi" class="page-content space-y-4">
+            <button onclick="navigateTo('pageDashboard', 'Overview')" class="back-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M15 19l-7-7 7-7" /></svg> Kembali ke Dashboard
+            </button>
             <h2 class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest text-rose-500">Temuan Selisih Stok</h2>
             <div id="deviasiList" class="space-y-3"></div>
         </section>
@@ -113,10 +123,26 @@
                     <div id="dashBar" class="h-full bg-blue-600 transition-all duration-1000 shadow-inner" style="width: 0%"></div>
                 </div>
             </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="navigateTo('pageInputList', 'Stock Opname')" class="bg-blue-600 p-5 rounded-[24px] text-white text-left card-shadow">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                    <p class="text-[11px] font-black uppercase tracking-widest leading-none">Mulai Audit</p>
+                    <p class="text-[8px] text-blue-200 font-bold uppercase mt-1">Input Stok Fisik</p>
+                </button>
+                <button onclick="navigateTo('pageInventory', 'Inventory')" class="bg-white p-5 rounded-[24px] text-slate-800 text-left border border-slate-100 card-shadow">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                    <p class="text-[11px] font-black uppercase tracking-widest leading-none">Cari Item</p>
+                    <p class="text-[8px] text-slate-400 font-bold uppercase mt-1">Database Barang</p>
+                </button>
+            </div>
         </section>
 
         <!-- Page: Inventory (Items) -->
         <section id="pageInventory" class="page-content space-y-4">
+            <button onclick="navigateTo('pageDashboard', 'Overview')" class="back-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M15 19l-7-7 7-7" /></svg> Kembali ke Dashboard
+            </button>
             <div class="flex justify-between items-center px-1">
                 <h2 class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Seluruh Items (Limit 1000)</h2>
             </div>
@@ -126,8 +152,8 @@
 
         <!-- Detail Input Modal -->
         <section id="pageInputDetail" class="page-content">
-            <button onclick="navigateTo('pageInputList', 'Stock Opname')" class="mb-5 flex items-center text-blue-600 font-extrabold text-[10px] uppercase tracking-widest">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M15 19l-7-7 7-7" /></svg> Kembali
+            <button onclick="navigateTo('pageInputList', 'Stock Opname')" class="back-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M15 19l-7-7 7-7" /></svg> Kembali ke Daftar
             </button>
             <div class="bg-white rounded-[40px] shadow-2xl p-8 border border-slate-100">
                 <div class="mb-8">
@@ -164,15 +190,15 @@
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
             <span class="text-[8px] font-extrabold uppercase mt-1.5 tracking-tighter">Selisih</span>
         </button>
-        <button onclick="navigateTo('pageInputList', 'Stock Opname')" id="nav-pageInputList" class="nav-item active flex flex-col items-center w-1/5">
+        <button onclick="navigateTo('pageDashboard', 'Overview')" id="nav-pageDashboard-main" class="nav-item active flex flex-col items-center w-1/5">
             <div class="bg-blue-600 text-white p-4 rounded-2xl shadow-xl shadow-blue-500/40 -mt-10 border-4 border-white transition-all active:scale-90">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M12 4v16m8-8H4" /></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
             </div>
-            <span class="text-[8px] font-extrabold uppercase mt-2 text-blue-600 tracking-tighter">Audit</span>
+            <span class="text-[8px] font-extrabold uppercase mt-2 text-blue-600 tracking-tighter">Home</span>
         </button>
-        <button onclick="navigateTo('pageDashboard', 'Overview')" id="nav-pageDashboard" class="nav-item flex flex-col items-center w-1/5">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-            <span class="text-[8px] font-extrabold uppercase mt-1.5 tracking-tighter">Stats</span>
+        <button onclick="navigateTo('pageInputList', 'Stock Opname')" id="nav-pageInputList" class="nav-item flex flex-col items-center w-1/5">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+            <span class="text-[8px] font-extrabold uppercase mt-1.5 tracking-tighter">Audit</span>
         </button>
         <button onclick="navigateTo('pageInventory', 'Inventory')" id="nav-pageInventory" class="nav-item flex flex-col items-center w-1/5">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
@@ -187,7 +213,6 @@
         let logs = [];
         let selectedMaterial = null;
 
-        // Simpan/Muat status dari LocalStorage
         const getStoredStatus = () => JSON.parse(localStorage.getItem('bpr_check_status') || '{}');
         const saveStatus = (data) => localStorage.setItem('bpr_check_status', JSON.stringify(data));
 
@@ -212,27 +237,16 @@
                 document.getElementById('syncStatus').innerText = "Update: " + formattedTime;
                 document.getElementById('syncDot').classList.replace('bg-amber-500', 'bg-emerald-500');
             } catch (error) {
-                document.getElementById('syncStatus').innerText = "Gagal Memuat Data - Hubungkan Internet";
+                document.getElementById('syncStatus').innerText = "Sync Gagal - Offline";
                 document.getElementById('syncDot').classList.replace('bg-emerald-500', 'bg-rose-500');
-                renderEmptyStates("Gagal sinkronisasi data");
             } finally {
                 document.getElementById('loading').style.display = 'none';
             }
         }
 
-        function renderEmptyStates(msg) {
-            const containers = ['inputItemContainer', 'inventoryContainer', 'historyList', 'deviasiList'];
-            containers.forEach(id => {
-                document.getElementById(id).innerHTML = `<div class="empty-state">${msg}</div>`;
-            });
-        }
-
         function parseCSV(csvText) {
             const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== "");
-            if (lines.length < 2) {
-                renderEmptyStates("Format data tidak sesuai");
-                return;
-            }
+            if (lines.length < 2) return;
             const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
             
             const col = {
@@ -254,7 +268,6 @@
                 const matNum = row[col.mat] || '';
                 const currentSoh = parseFloat(row[col.soh]) || 0;
                 
-                // Logika Pengecekan 30 Hari & Update SOH
                 const audit = storedStatus[matNum];
                 let statusMsg = "Belum Di Cek";
                 let statusColor = "bg-slate-100 text-slate-500";
@@ -324,10 +337,10 @@
                 (i.material.toLowerCase().includes(q) || i.name.toLowerCase().includes(q) || i.part.toLowerCase().includes(q) || i.bin.toLowerCase().includes(q))
             );
             
-            document.getElementById('itemCountLabel').innerText = `${filtered.length} Item SOH > 0`;
+            document.getElementById('itemCountLabel').innerText = `${filtered.length} Item`;
 
             if (filtered.length === 0) {
-                container.innerHTML = `<div class="empty-state">Tidak ada item SOH > 0 ${q ? 'yang cocok' : 'saat ini'}</div>`;
+                container.innerHTML = `<div class="empty-state">Data Kosong / Tidak Ditemukan</div>`;
                 return;
             }
 
@@ -365,7 +378,7 @@
             ).slice(0, 1000);
 
             if (filtered.length === 0) {
-                container.innerHTML = `<div class="empty-state">Data item tidak ditemukan</div>`;
+                container.innerHTML = `<div class="empty-state">Item tidak ditemukan</div>`;
                 return;
             }
 
@@ -398,7 +411,7 @@
                 } else {
                     inventory.forEach(i => {
                         const div = document.createElement('div');
-                        div.className = "bg-white p-4 rounded-2xl border border-slate-100 flex justify-between items-center shadow-sm active:scale-95 transition-all";
+                        div.className = "bg-white p-4 rounded-2xl border border-slate-100 flex justify-between items-center mb-2 shadow-sm active:scale-95 transition-all";
                         div.onclick = () => { openDetail(i); modal.classList.remove('active'); };
                         div.innerHTML = `
                             <div>
@@ -440,7 +453,6 @@
             const phys = parseFloat(val);
             const diff = phys - selectedMaterial.system;
             
-            // Simpan status pengecekan
             const stored = getStoredStatus();
             stored[selectedMaterial.material] = {
                 date: new Date().toISOString(),
@@ -459,7 +471,7 @@
         function renderHistory() {
             const list = document.getElementById('historyList');
             if (logs.length === 0) { 
-                list.innerHTML = `<div class="empty-state">Belum ada riwayat aktivitas audit hari ini</div>`; 
+                list.innerHTML = `<div class="empty-state">Tidak ada riwayat aktivitas</div>`; 
                 return; 
             }
             list.innerHTML = logs.map(l => `
@@ -477,7 +489,7 @@
             const list = document.getElementById('deviasiList');
             const devItems = logs.filter(l => l.diff !== 0);
             if (devItems.length === 0) { 
-                list.innerHTML = `<div class="empty-state">Belum ada temuan selisih stok</div>`; 
+                list.innerHTML = `<div class="empty-state">Tidak ada selisih stok</div>`; 
                 return; 
             }
             list.innerHTML = devItems.map(l => `
@@ -508,7 +520,9 @@
             if (id === 'pageHistory') renderHistory();
             if (id === 'pageDeviasi') renderDeviasi();
 
-            const targetNav = (id === 'pageInputDetail') ? 'pageInputList' : id;
+            // Handle bottom nav activation
+            const targetNav = (id === 'pageInputDetail' || id === 'pageInputList') ? 'pageInputList' : 
+                             (id === 'pageDashboard') ? 'pageDashboard-main' : id;
             const n = document.getElementById('nav-' + targetNav);
             if(n) n.classList.add('active');
             window.scrollTo(0,0);
