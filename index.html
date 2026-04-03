@@ -1,0 +1,377 @@
+html
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SOH Mobile - BPR Site</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; }
+        .page-content { display: none; }
+        .page-content.active { display: block; }
+        
+        .nav-item { transition: all 0.3s ease; cursor: pointer; color: #94a3b8; }
+        .nav-item.active { color: #60a5fa; }
+        
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Status Border Indicators */
+        .card-status-ok { border-left: 4px solid #10b981; }
+        .card-status-warn { border-left: 4px solid #f59e0b; }
+        .card-status-crit { border-left: 4px solid #ef4444; }
+
+        main { padding-bottom: 140px; }
+        
+        .clickable-card {
+            -webkit-tap-highlight-color: transparent;
+            transition: background-color 0.2s;
+        }
+        .clickable-card:active { background-color: #f8fafc; }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+
+        /* Sub-tab styling */
+        .filter-tab {
+            position: relative;
+            transition: all 0.2s;
+        }
+        .filter-tab.active {
+            color: #1e3a8a;
+        }
+        .filter-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: #1e3a8a;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <!-- HEADER -->
+    <header class="bg-blue-950 text-white p-5 sticky top-0 z-50 shadow-lg border-b border-blue-900">
+        <div class="flex justify-between items-center max-w-md mx-auto">
+            <div>
+                <h1 id="headerTitle" class="text-sm font-semibold tracking-wider uppercase text-blue-400">Input Opname</h1>
+                <p id="dateDisplay" class="text-[10px] font-medium text-slate-300 uppercase mt-0.5">--</p>
+            </div>
+            <div class="flex flex-col items-end">
+                <span class="text-[9px] font-semibold bg-blue-800 px-2 py-1 rounded text-white tracking-widest">BPR SITE</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-md mx-auto fade-in">
+
+        <!-- RIWAYAT -->
+        <section id="pageHistory" class="page-content p-4">
+            <div id="historyList" class="space-y-3"></div>
+        </section>
+
+        <!-- DEVIASI -->
+        <section id="pageDeviasi" class="page-content p-4">
+            <div id="deviasiList" class="space-y-3"></div>
+        </section>
+
+        <!-- INPUT OPNAME (LIST UTAMA) -->
+        <section id="pageInputList" class="page-content active p-4">
+            <!-- Search Bar -->
+            <div class="mb-4">
+                <input type="text" id="searchInput" onkeyup="renderInputList()" placeholder="Cari Material, PN, atau Mnemonic..." 
+                       class="w-full p-4 rounded-xl border border-slate-200 shadow-sm focus:ring-2 focus:ring-blue-500 outline-none text-sm font-medium bg-white transition-all">
+            </div>
+
+            <!-- Tab Filter (Daftar Sudah/Belum Cek) -->
+            <div class="flex items-center gap-6 mb-4 px-1 border-b border-slate-200/60 pb-2">
+                <button onclick="setFilter('all')" id="tab-all" class="filter-tab active text-[10px] font-bold uppercase tracking-widest text-slate-400">Semua</button>
+                <button onclick="setFilter('unverified')" id="tab-unverified" class="filter-tab text-[10px] font-bold uppercase tracking-widest text-slate-400">Belum Cek</button>
+                <button onclick="setFilter('verified')" id="tab-verified" class="filter-tab text-[10px] font-bold uppercase tracking-widest text-slate-400">Sudah Cek</button>
+            </div>
+
+            <!-- Legenda Tanda -->
+            <div class="flex items-center gap-4 mb-5 px-1 overflow-x-auto no-scrollbar py-1">
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span class="text-[9px] font-semibold text-slate-500 uppercase tracking-tighter">Verified</span>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                    <span class="text-[9px] font-semibold text-slate-500 uppercase tracking-tighter">SOH Updated</span>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                    <span class="text-[9px] font-semibold text-slate-500 uppercase tracking-tighter">Expired/New</span>
+                </div>
+            </div>
+            
+            <div id="inputItemContainer" class="space-y-3"></div>
+        </section>
+
+        <!-- INPUT DETAIL -->
+        <section id="pageInputDetail" class="page-content p-5">
+            <div class="max-w-md mx-auto">
+                <button onclick="navigateTo('pageInputList', 'Input Opname')" class="mb-5 flex items-center text-blue-900 font-semibold text-xs uppercase tracking-wide">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg> Kembali
+                </button>
+                <div class="bg-white rounded-3xl shadow-xl p-6 border border-slate-100">
+                    <div class="mb-6">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Material Number</p>
+                        <h2 id="detMaterial" class="text-2xl font-bold text-blue-950 tracking-tight">--</h2>
+                        
+                        <div class="mt-4 pt-4 border-t border-slate-50">
+                            <h3 id="detName" class="text-sm font-semibold leading-tight text-slate-800 uppercase">--</h3>
+                            <div class="flex flex-wrap gap-2 mt-3">
+                                <span id="detMnemonic" class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider">--</span>
+                                <span id="detSlocBin" class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider">--</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 mb-8">
+                        <div class="bg-slate-50 p-5 rounded-2xl text-center">
+                            <p class="text-[10px] font-bold uppercase text-slate-400 mb-1">Stok SAP</p>
+                            <p id="detSystem" class="text-3xl font-bold text-slate-800">0</p>
+                            <p id="detUom" class="text-[10px] font-semibold text-slate-400 mt-1 uppercase">--</p>
+                        </div>
+                        <div class="bg-blue-50 p-5 rounded-2xl text-center border-2 border-blue-200">
+                            <p class="text-[10px] font-bold uppercase text-blue-600 mb-1">Fisik</p>
+                            <input type="number" id="fieldPhysical" inputmode="decimal" class="w-full bg-transparent text-3xl font-bold text-blue-900 text-center outline-none" placeholder="0">
+                        </div>
+                    </div>
+                    <button onclick="submitOpname()" class="w-full bg-blue-950 text-white font-semibold py-4 rounded-xl uppercase text-xs tracking-[0.15em] shadow-lg active:scale-95 transition-transform">Simpan Verifikasi</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- DASHBOARD -->
+        <section id="pageDashboard" class="page-content p-4">
+            <div class="bg-white p-6 rounded-3xl border shadow-sm text-center">
+                <h3 id="dashMonthTitle" class="text-[10px] font-bold text-slate-400 uppercase mb-4 tracking-widest border-b pb-2">Progress Audit</h3>
+                <div class="flex justify-between items-center mb-4 px-4">
+                    <div class="text-left">
+                        <p class="text-4xl font-bold text-emerald-600" id="dashChecked">0</p>
+                        <p class="text-[10px] font-semibold text-slate-400 uppercase">Selesai</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-lg font-bold text-slate-800" id="dashTotal">0</p>
+                        <p class="text-[10px] font-semibold text-slate-400 uppercase">Target</p>
+                    </div>
+                </div>
+                <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                    <div id="dashBar" class="h-full bg-emerald-500 transition-all duration-1000" style="width: 0%"></div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- NAVIGATION -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-blue-950 h-20 flex justify-around items-center z-[100] shadow-2xl px-2">
+        <button onclick="navigateTo('pageHistory', 'Riwayat')" id="nav-pageHistory" class="nav-item flex flex-col items-center justify-center w-1/5 h-full">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <span class="text-[8px] font-bold uppercase mt-1 tracking-tighter">Riwayat</span>
+        </button>
+        <button onclick="navigateTo('pageDeviasi', 'Deviasi')" id="nav-pageDeviasi" class="nav-item flex flex-col items-center justify-center w-1/5 h-full">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+            <span class="text-[8px] font-bold uppercase mt-1 tracking-tighter">Deviasi</span>
+        </button>
+        <button onclick="navigateTo('pageInputList', 'Input Opname')" id="nav-pageInputList" class="nav-item active flex flex-col items-center justify-center w-1/5 h-full">
+            <div class="bg-blue-600 text-white p-3 rounded-xl shadow-xl -mt-10 border-4 border-blue-950 transition-transform active:scale-90">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M12 4v16m8-8H4" /></svg>
+            </div>
+            <span class="text-[8px] font-bold uppercase mt-2 tracking-tighter text-blue-400">Scan</span>
+        </button>
+        <button onclick="navigateTo('pageDashboard', 'Dashboard')" id="nav-pageDashboard" class="nav-item flex flex-col items-center justify-center w-1/5 h-full">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+            <span class="text-[8px] font-bold uppercase mt-1 tracking-tighter">Stats</span>
+        </button>
+        <button onclick="navigateTo('pageInventory', 'Inventory')" id="nav-pageInventory" class="nav-item flex flex-col items-center justify-center w-1/5 h-full">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
+            <span class="text-[8px] font-bold uppercase mt-1 tracking-tighter">Items</span>
+        </button>
+    </nav>
+
+    <script>
+        // MASTER DATA
+        let inventory = [
+            { material: 'CM00100005', mnemonic: 'YANMAR', name: 'STARTING MOTOR YANMAR 24V', part: '105100-77010', uom: 'PC', sloc: '1000', bin: 'B1-04-A', system: 2, checkedDate: '', lastSystemQty: 0 },
+            { material: 'CM00100008', mnemonic: 'VOLVO', name: 'STARTING MOTOR EC480D', part: '11129448', uom: 'PC', sloc: '1000', bin: 'A2-10-C', system: 1, checkedDate: '', lastSystemQty: 0 },
+            { material: 'SP00900030', mnemonic: 'REFF', name: 'FUEL GUN FLOMAX STANDARD', part: 'FN9000SW-01', uom: 'PC', sloc: '1400', bin: '99T99T', system: 5, checkedDate: '2024-03-25T08:00:00Z', lastSystemQty: 5 },
+            { material: 'SP00900032', mnemonic: 'GRACO', name: 'OIL GUN 1/2IN HEAVY DUTY', part: '247721', uom: 'PC', sloc: '1000', bin: 'C4-02-B', system: 12, checkedDate: '2024-03-01T11:00:00Z', lastSystemQty: 8 },
+            { material: 'SP00900033', mnemonic: 'SCHNEIDER', name: 'SWITCH CLIPSAL E-SERIES', part: 'E100K010', uom: 'PC', sloc: '1200', bin: 'A1-01-A', system: 4, checkedDate: '', lastSystemQty: 0 },
+            { material: 'SP00900034', mnemonic: 'HYDRAULIC', name: 'SEAL KIT HYDRAULIC BOOM', part: 'SK-B-001', uom: 'PC', sloc: '1000', bin: 'A1-01-A', system: 3, checkedDate: '', lastSystemQty: 0 }
+        ];
+
+        let logs = [];
+        let selectedMaterial = null;
+        let currentFilter = 'all';
+
+        window.onload = () => {
+            const now = new Date();
+            document.getElementById('dateDisplay').innerText = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            renderInputList();
+            renderDashboard();
+        };
+
+        function getItemStatus(item) {
+            if (!item.checkedDate) return 'crit';
+            const lastChecked = new Date(item.checkedDate);
+            const diffDays = Math.floor((new Date() - lastChecked) / (1000 * 60 * 60 * 24));
+            if (item.system !== item.lastSystemQty) return 'warn';
+            if (diffDays >= 30) return 'crit';
+            return 'ok';
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById('tab-' + filter).classList.add('active');
+            renderInputList();
+        }
+
+        function navigateTo(id, title) {
+            document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.getElementById('headerTitle').innerText = title;
+            
+            document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+            const parentId = id === 'pageInputDetail' ? 'pageInputList' : id;
+            const activeBtn = document.getElementById('nav-' + parentId);
+            if(activeBtn) activeBtn.classList.add('active');
+            
+            window.scrollTo(0,0);
+        }
+
+        function renderInputList() {
+            const container = document.getElementById('inputItemContainer');
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            container.innerHTML = '';
+
+            let filtered = inventory.filter(item => {
+                const matchesSearch = item.material.toLowerCase().includes(search) || 
+                                    item.name.toLowerCase().includes(search) || 
+                                    item.mnemonic.toLowerCase().includes(search) ||
+                                    item.part.toLowerCase().includes(search);
+                
+                const status = getItemStatus(item);
+                const isVerified = status === 'ok';
+
+                if (currentFilter === 'verified') return matchesSearch && isVerified;
+                if (currentFilter === 'unverified') return matchesSearch && !isVerified;
+                return matchesSearch;
+            });
+
+            // Sorting berdasarkan Sloc kemudian Storage Bin
+            filtered.sort((a, b) => {
+                if (a.sloc !== b.sloc) return parseInt(a.sloc) - parseInt(b.sloc);
+                return a.bin.localeCompare(b.bin);
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="p-12 text-center opacity-30 text-[10px] font-bold uppercase tracking-widest">Tidak ada item</div>`;
+                return;
+            }
+
+            filtered.forEach(item => {
+                const status = getItemStatus(item);
+                const statusBorder = `card-status-${status}`;
+                const dotColor = status === 'ok' ? 'bg-emerald-500' : (status === 'warn' ? 'bg-amber-500' : 'bg-rose-500');
+
+                const card = document.createElement('div');
+                card.className = `bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden clickable-card ${statusBorder} fade-in`;
+                card.onclick = () => openInputDetail(item.material, item.sloc);
+                
+                card.innerHTML = `
+                    <div class="p-4 flex justify-between items-start pointer-events-none">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-[9px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded tracking-tighter uppercase">${item.sloc}</span>
+                                <span class="text-[9px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded tracking-tighter uppercase">${item.bin}</span>
+                                <div class="w-1.5 h-1.5 rounded-full ${dotColor}"></div>
+                            </div>
+                            <h3 class="text-lg font-bold text-blue-950 tracking-tight leading-none">${item.material}</h3>
+                            <div class="mt-2">
+                                <h4 class="font-semibold text-slate-700 text-[10px] uppercase leading-tight truncate w-44">${item.name}</h4>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <span class="text-[9px] font-bold text-blue-500 uppercase tracking-widest">${item.mnemonic}</span>
+                                    <span class="text-slate-300">|</span>
+                                    <span class="text-[8px] font-medium text-slate-400 uppercase">P/N: ${item.part}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-right border-l border-slate-50 pl-4 ml-2 min-w-[70px]">
+                            <p class="text-[8px] font-bold text-slate-300 uppercase tracking-widest mb-1">Stock</p>
+                            <p class="text-xl font-bold text-slate-800 leading-none">${item.system}</p>
+                            <p class="text-[8px] font-semibold text-slate-400 uppercase mt-2">${item.uom}</p>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function openInputDetail(mat, sloc) {
+            selectedMaterial = inventory.find(i => i.material === mat && i.sloc === sloc);
+            if(!selectedMaterial) return;
+            
+            document.getElementById('detMaterial').innerText = selectedMaterial.material;
+            document.getElementById('detName').innerText = selectedMaterial.name;
+            document.getElementById('detMnemonic').innerText = selectedMaterial.mnemonic;
+            document.getElementById('detSlocBin').innerText = `${selectedMaterial.sloc} | ${selectedMaterial.bin}`;
+            document.getElementById('detSystem').innerText = selectedMaterial.system;
+            document.getElementById('detUom').innerText = "UNIT: " + selectedMaterial.uom;
+            document.getElementById('fieldPhysical').value = '';
+            
+            navigateTo('pageInputDetail', 'Audit Fisik');
+            setTimeout(() => document.getElementById('fieldPhysical').focus(), 300);
+        }
+
+        function submitOpname() {
+            const val = document.getElementById('fieldPhysical').value;
+            if(val === "") return;
+            
+            const phys = parseFloat(val);
+            const diff = phys - selectedMaterial.system;
+            
+            logs.unshift({
+                date: new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}),
+                material: selectedMaterial.material,
+                sloc: selectedMaterial.sloc,
+                physical: phys,
+                status: diff === 0 ? 'Match' : 'Selisih ' + (diff > 0 ? '+' : '') + diff
+            });
+            
+            selectedMaterial.checkedDate = new Date().toISOString();
+            selectedMaterial.lastSystemQty = selectedMaterial.system;
+            
+            renderDashboard(); renderInputList(); renderHistory();
+            navigateTo('pageHistory', 'Riwayat');
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            list.innerHTML = logs.length ? '' : `<div class="p-20 text-center opacity-30 text-[10px] font-bold uppercase tracking-widest">Belum ada aktivitas</div>`;
+            logs.forEach(l => {
+                list.innerHTML += `<div class="bg-white p-4 rounded-xl shadow-sm border-l-4 ${l.status === 'Match' ? 'border-emerald-500' : 'border-rose-500'} flex justify-between items-center mb-2"><div><p class="text-[11px] font-bold text-blue-900">${l.material}</p><p class="text-[9px] text-slate-400 font-medium">${l.date}</p></div><span class="text-[10px] font-bold ${l.status === 'Match' ? 'text-emerald-600' : 'text-rose-600'} uppercase">${l.status}</span></div>`;
+            });
+        }
+
+        function renderDashboard() {
+            const checked = inventory.filter(i => getItemStatus(i) === 'ok').length;
+            const perc = Math.round((checked / inventory.length) * 100);
+            document.getElementById('dashChecked').innerText = checked;
+            document.getElementById('dashTotal').innerText = inventory.length;
+            document.getElementById('dashBar').style.width = perc + "%";
+            document.getElementById('dashMonthTitle').innerText = new Date().toLocaleDateString('id-ID', {month: 'long', year: 'numeric'});
+        }
+    </script>
+</body>
+</html>
