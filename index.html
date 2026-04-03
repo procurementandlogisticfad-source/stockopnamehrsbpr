@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Stock Opname Mobile - PT HRS site BPR</title>
-    <link rel="icon" type="image/png" href="logo.png">
+    <title>SOH Mobile - BPR Site</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="logo.png">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         
-        body { font-family: 'Inter', sans-serif; }
+        body { font-family: 'Inter', sans-serif; overflow-x: hidden; }
         .page-content { display: none; }
         .page-content.active { display: block; }
         
@@ -21,7 +21,6 @@
         .fade-in { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Status Border Indicators */
         .card-status-ok { border-left: 4px solid #10b981; }
         .card-status-warn { border-left: 4px solid #f59e0b; }
         .card-status-crit { border-left: 4px solid #ef4444; }
@@ -36,7 +35,6 @@
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
 
-        /* Sub-tab styling */
         .filter-tab {
             position: relative;
             transition: all 0.2s;
@@ -53,9 +51,44 @@
             height: 2px;
             background-color: #1e3a8a;
         }
+
+        /* Notifikasi sukses sederhana */
+        #toast {
+            visibility: hidden;
+            min-width: 200px;
+            background-color: #10b981;
+            color: #fff;
+            text-align: center;
+            border-radius: 12px;
+            padding: 12px;
+            position: fixed;
+            z-index: 1000;
+            left: 50%;
+            bottom: 100px;
+            transform: translateX(-50%);
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        #toast.show {
+            visibility: visible;
+            animation: fadeinout 2s;
+        }
+
+        @keyframes fadeinout {
+            0% { bottom: 80px; opacity: 0; }
+            20% { bottom: 100px; opacity: 1; }
+            80% { bottom: 100px; opacity: 1; }
+            100% { bottom: 80px; opacity: 0; }
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
+
+    <div id="toast">Data Berhasil Disimpan</div>
 
     <!-- HEADER -->
     <header class="bg-blue-950 text-white p-5 sticky top-0 z-50 shadow-lg border-b border-blue-900">
@@ -64,8 +97,8 @@
                 <h1 id="headerTitle" class="text-sm font-semibold tracking-wider uppercase text-blue-400">Input Opname</h1>
                 <p id="dateDisplay" class="text-[10px] font-medium text-slate-300 uppercase mt-0.5">--</p>
             </div>
-            <div class="flex flex-col items-end">
-                <span class="text-[9px] font-semibold bg-blue-800 px-2 py-1 rounded text-white tracking-widest">BPR SITE</span>
+            <div class="flex flex-col items-end text-right">
+                <span class="text-[9px] font-semibold bg-blue-800 px-2 py-1 rounded text-white tracking-widest uppercase">BPR SITE</span>
             </div>
         </div>
     </header>
@@ -84,20 +117,17 @@
 
         <!-- INPUT OPNAME (LIST UTAMA) -->
         <section id="pageInputList" class="page-content active p-4">
-            <!-- Search Bar -->
             <div class="mb-4">
                 <input type="text" id="searchInput" onkeyup="renderInputList()" placeholder="Cari Material, PN, atau Mnemonic..." 
                        class="w-full p-4 rounded-xl border border-slate-200 shadow-sm focus:ring-2 focus:ring-blue-500 outline-none text-sm font-medium bg-white transition-all">
             </div>
 
-            <!-- Tab Filter (Daftar Sudah/Belum Cek) -->
-            <div class="flex items-center gap-6 mb-4 px-1 border-b border-slate-200/60 pb-2">
+            <div class="flex items-center gap-6 mb-4 px-1 border-b border-slate-200/60 pb-2 overflow-x-auto no-scrollbar">
                 <button onclick="setFilter('all')" id="tab-all" class="filter-tab active text-[10px] font-bold uppercase tracking-widest text-slate-400">Semua</button>
                 <button onclick="setFilter('unverified')" id="tab-unverified" class="filter-tab text-[10px] font-bold uppercase tracking-widest text-slate-400">Belum Cek</button>
                 <button onclick="setFilter('verified')" id="tab-verified" class="filter-tab text-[10px] font-bold uppercase tracking-widest text-slate-400">Sudah Cek</button>
             </div>
 
-            <!-- Legenda Tanda -->
             <div class="flex items-center gap-4 mb-5 px-1 overflow-x-auto no-scrollbar py-1">
                 <div class="flex items-center gap-1.5 shrink-0">
                     <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
@@ -146,7 +176,7 @@
                             <input type="number" id="fieldPhysical" inputmode="decimal" class="w-full bg-transparent text-3xl font-bold text-blue-900 text-center outline-none" placeholder="0">
                         </div>
                     </div>
-                    <button onclick="submitOpname()" class="w-full bg-blue-950 text-white font-semibold py-4 rounded-xl uppercase text-xs tracking-[0.15em] shadow-lg active:scale-95 transition-transform">Simpan Verifikasi</button>
+                    <button id="btnSubmit" onclick="submitOpname()" class="w-full bg-blue-950 text-white font-semibold py-4 rounded-xl uppercase text-xs tracking-[0.15em] shadow-lg active:scale-95 transition-transform">Simpan Verifikasi</button>
                 </div>
             </div>
         </section>
@@ -158,11 +188,11 @@
                 <div class="flex justify-between items-center mb-4 px-4">
                     <div class="text-left">
                         <p class="text-4xl font-bold text-emerald-600" id="dashChecked">0</p>
-                        <p class="text-[10px] font-semibold text-slate-400 uppercase">Selesai</p>
+                        <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-tight">Selesai</p>
                     </div>
                     <div class="text-right">
                         <p class="text-lg font-bold text-slate-800" id="dashTotal">0</p>
-                        <p class="text-[10px] font-semibold text-slate-400 uppercase">Target</p>
+                        <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-tight">Target</p>
                     </div>
                 </div>
                 <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
@@ -221,6 +251,12 @@
             renderDashboard();
         };
 
+        function showToast() {
+            const t = document.getElementById("toast");
+            t.className = "show";
+            setTimeout(() => { t.className = t.className.replace("show", ""); }, 2000);
+        }
+
         function getItemStatus(item) {
             if (!item.checkedDate) return 'crit';
             const lastChecked = new Date(item.checkedDate);
@@ -243,7 +279,7 @@
             document.getElementById('headerTitle').innerText = title;
             
             document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
-            const parentId = id === 'pageInputDetail' ? 'pageInputList' : id;
+            const parentId = (id === 'pageInputDetail') ? 'pageInputList' : id;
             const activeBtn = document.getElementById('nav-' + parentId);
             if(activeBtn) activeBtn.classList.add('active');
             
@@ -269,7 +305,6 @@
                 return matchesSearch;
             });
 
-            // Sorting berdasarkan Sloc kemudian Storage Bin
             filtered.sort((a, b) => {
                 if (a.sloc !== b.sloc) return parseInt(a.sloc) - parseInt(b.sloc);
                 return a.bin.localeCompare(b.bin);
@@ -341,6 +376,7 @@
             const phys = parseFloat(val);
             const diff = phys - selectedMaterial.system;
             
+            // Tambah ke log
             logs.unshift({
                 date: new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}),
                 material: selectedMaterial.material,
@@ -349,11 +385,22 @@
                 status: diff === 0 ? 'Match' : 'Selisih ' + (diff > 0 ? '+' : '') + diff
             });
             
+            // Update status item
             selectedMaterial.checkedDate = new Date().toISOString();
             selectedMaterial.lastSystemQty = selectedMaterial.system;
             
-            renderDashboard(); renderInputList(); renderHistory();
-            navigateTo('pageHistory', 'Riwayat');
+            // Refresh data & dashboard
+            renderDashboard(); 
+            renderInputList(); 
+            renderHistory();
+            
+            // Tampilkan feedback sukses
+            showToast();
+
+            // KEMBALI KE DAFTAR UTAMA
+            setTimeout(() => {
+                navigateTo('pageInputList', 'Input Opname');
+            }, 300); // Delay sedikit agar toast sempat terlihat & animasi smooth
         }
 
         function renderHistory() {
