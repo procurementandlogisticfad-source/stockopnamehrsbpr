@@ -6,175 +6,236 @@
     <title>Sock Opname Mobile - PT HRS Site BPR</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="icon" type="image/png" href="logo.png">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: antialiased; background-color: #f8fafc; }
         .page-content { display: none; }
         .page-content.active { display: block; }
-        .nav-item { transition: all 0.2s ease; cursor: pointer; color: #94a3b8; }
-        .nav-item.active { color: #60a5fa; }
-        .card-status-ok { border-left: 4px solid #10b981; }
-        .card-status-none { border-left: 4px solid #cbd5e1; }
-        #toast { visibility: hidden; min-width: 200px; background-color: #10b981; color: #fff; text-align: center; border-radius: 12px; padding: 12px; position: fixed; z-index: 1000; left: 50%; bottom: 100px; transform: translateX(-50%); font-size: 12px; font-weight: bold; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
-        #toast.show { visibility: visible; animation: fadeinout 2s; }
-        @keyframes fadeinout { 0% { bottom: 80px; opacity: 0; } 20% { bottom: 100px; opacity: 1; } 80% { bottom: 100px; opacity: 1; } 100% { bottom: 80px; opacity: 0; } }
-        .loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.9); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .nav-item { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; color: #94a3b8; }
+        .nav-item.active { color: #3b82f6; }
+        .status-badge { font-size: 8px; font-weight: 800; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
+        .card-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); }
+        #toast { visibility: hidden; min-width: 250px; background-color: #1e293b; color: #fff; text-align: center; border-radius: 16px; padding: 16px; position: fixed; z-index: 1000; left: 50%; bottom: 100px; transform: translateX(-50%); font-size: 13px; font-weight: 600; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); }
+        #toast.show { visibility: visible; animation: fadeinout 2.5s; }
+        @keyframes fadeinout { 0% { bottom: 80px; opacity: 0; } 15% { bottom: 100px; opacity: 1; } 85% { bottom: 100px; opacity: 1; } 100% { bottom: 80px; opacity: 0; } }
+        .modal-all-items { position: fixed; inset: 0; background: white; z-index: 1000; display: none; flex-direction: column; }
+        .modal-all-items.active { display: flex; }
+        .empty-state { padding: 60px 20px; text-align: center; color: #94a3b8; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800">
+<body class="text-slate-900">
 
-    <div id="loading" class="loading-overlay">
-        <div class="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent mb-4"></div>
-        <p class="text-xs font-bold text-blue-900 uppercase tracking-widest">Sinkronisasi Data...</p>
+    <!-- Loading State -->
+    <div id="loading" class="fixed inset-0 bg-white/90 z-[3000] flex flex-col items-center justify-center">
+        <div class="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p class="text-[10px] font-extrabold text-blue-950 uppercase tracking-[0.2em]">Memuat Data BPR...</p>
     </div>
 
-    <div id="toast">Data Berhasil Diupdate</div>
+    <div id="toast">Data Berhasil Disimpan</div>
 
-    <header class="bg-blue-950 text-white p-5 sticky top-0 z-50 shadow-lg">
-        <div class="flex justify-between items-center max-w-md mx-auto">
-            <div>
-                <h1 id="headerTitle" class="text-sm font-semibold tracking-wider uppercase text-blue-400">Input Opname</h1>
-                <p id="syncStatus" class="text-[9px] font-medium text-slate-400 uppercase mt-0.5">Memuat data...</p>
-            </div>
-            <button onclick="fetchSheetData()" class="p-2 bg-blue-900 rounded-lg active:scale-95 transition-all">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+    <!-- Modal Full Inventory -->
+    <div id="modalAllItems" class="modal-all-items">
+        <div class="p-5 border-b flex justify-between items-center bg-white sticky top-0 z-10">
+            <h2 class="text-sm font-bold text-slate-800 uppercase tracking-tight">Daftar Lengkap Inventory</h2>
+            <button onclick="toggleAllItemsModal(false)" class="p-2 bg-slate-100 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
+        </div>
+        <div class="p-4 overflow-y-auto flex-1 bg-slate-50">
+            <div id="fullInventoryContainer" class="space-y-2 pb-10"></div>
+        </div>
+    </div>
+
+    <!-- Header Section -->
+    <header class="bg-blue-950 text-white pt-8 pb-12 px-6 rounded-b-[40px] shadow-2xl relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+        <div class="max-w-md mx-auto relative z-10">
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <h1 id="headerTitle" class="text-lg font-extrabold tracking-tight">Stock Opname</h1>
+                    <div class="flex items-center gap-2 mt-1">
+                        <span id="syncDot" class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                        <p id="syncStatus" class="text-[9px] font-bold text-blue-300 uppercase leading-tight">Menghubungkan Database...</p>
+                    </div>
+                </div>
+                <button onclick="fetchSheetData()" class="p-3 bg-white/10 hover:bg-white/20 rounded-2xl backdrop-blur-md transition-all active:scale-90">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                </button>
+            </div>
+            
+            <div id="searchContainer" class="relative group">
+                <input type="text" id="mainSearch" onkeyup="handleSearch()" placeholder="Cari Material, PN, atau Bin..." 
+                       class="w-full bg-white/10 border border-white/20 p-4 pl-12 rounded-2xl text-sm font-medium placeholder:text-blue-300/60 focus:bg-white focus:text-slate-900 focus:ring-4 focus:ring-blue-500/20 outline-none transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-4 top-1/2 -translate-y-1/2 text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            </div>
         </div>
     </header>
 
-    <main class="max-w-md mx-auto pb-32">
-        <section id="pageHistory" class="page-content p-4">
-            <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Aktivitas Terakhir</h2>
-            <div id="historyList" class="space-y-3 text-center py-10 text-slate-300 text-[10px] font-bold uppercase tracking-widest">Belum ada riwayat</div>
-        </section>
-
-        <section id="pageDeviasi" class="page-content p-4">
-            <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Daftar Deviasi</h2>
-            <div id="deviasiList" class="space-y-3 text-center py-10 text-slate-300 text-[10px] font-bold uppercase tracking-widest">Tidak ada deviasi</div>
-        </section>
-
-        <section id="pageInputList" class="page-content active p-4">
-            <div class="mb-4">
-                <input type="text" id="searchInput" onkeyup="renderInputList()" placeholder="Cari Material, Mnemonic, atau Bin..." 
-                       class="w-full p-4 rounded-xl border border-slate-200 shadow-sm focus:ring-2 focus:ring-blue-500 outline-none text-sm font-medium bg-white">
+    <main class="max-w-md mx-auto -mt-6 px-4 pb-32">
+        
+        <!-- Page: Opname (Scan) -->
+        <section id="pageInputList" class="page-content active space-y-4">
+            <div class="flex justify-between items-center px-1">
+                <h2 class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Input Opname (SOH > 0)</h2>
+                <span id="itemCountLabel" class="text-[9px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">0 Item</span>
             </div>
-            <div id="inputItemContainer" class="space-y-3"></div>
+            <div id="inputItemContainer" class="space-y-4"></div>
         </section>
 
-        <section id="pageDashboard" class="page-content p-4">
-            <div class="bg-white p-6 rounded-3xl border shadow-sm text-center">
-                <h3 class="text-[10px] font-bold text-slate-400 uppercase mb-4 tracking-widest border-b pb-2">Progress Audit</h3>
-                <div class="flex justify-between items-center mb-4 px-4">
-                    <div class="text-left">
-                        <p class="text-4xl font-bold text-emerald-600" id="dashChecked">0</p>
-                        <p class="text-[10px] font-semibold text-slate-400 uppercase">Verified</p>
+        <!-- Page: History -->
+        <section id="pageHistory" class="page-content space-y-4">
+            <h2 class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Riwayat Perubahan</h2>
+            <div id="historyList" class="space-y-3"></div>
+        </section>
+
+        <!-- Page: Deviasi -->
+        <section id="pageDeviasi" class="page-content space-y-4">
+            <h2 class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest text-rose-500">Temuan Selisih Stok</h2>
+            <div id="deviasiList" class="space-y-3"></div>
+        </section>
+
+        <!-- Page: Dashboard -->
+        <section id="pageDashboard" class="page-content space-y-6">
+            <div class="bg-white p-8 rounded-[32px] border border-slate-100 shadow-xl text-center">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-6 text-center">Kepatuhan Opname Bulanan</p>
+                <div class="flex justify-around items-end mb-8">
+                    <div>
+                        <p class="text-5xl font-black text-blue-600" id="dashChecked">0</p>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase mt-1">Verified</p>
                     </div>
-                    <div class="text-right">
-                        <p class="text-lg font-bold text-slate-800" id="dashTotal">0</p>
-                        <p class="text-[10px] font-semibold text-slate-400 uppercase">Total SKU</p>
+                    <div class="w-px h-12 bg-slate-100"></div>
+                    <div>
+                        <p class="text-2xl font-extrabold text-slate-800" id="dashTotal">0</p>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase mt-1">Total SKU</p>
                     </div>
                 </div>
-                <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                    <div id="dashBar" class="h-full bg-emerald-500 transition-all duration-1000" style="width: 0%"></div>
+                <div class="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
+                    <div id="dashBar" class="h-full bg-blue-600 transition-all duration-1000 shadow-inner" style="width: 0%"></div>
                 </div>
             </div>
         </section>
 
-        <section id="pageInventory" class="page-content p-4">
-            <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Data Seluruh Inventory</h2>
-            <div class="mb-4">
-                <input type="text" id="inventorySearch" onkeyup="renderInventoryList()" placeholder="Cari di seluruh database..." 
-                       class="w-full p-3 rounded-xl border border-slate-200 bg-white text-sm outline-none focus:ring-2 focus:ring-blue-500">
+        <!-- Page: Inventory (Items) -->
+        <section id="pageInventory" class="page-content space-y-4">
+            <div class="flex justify-between items-center px-1">
+                <h2 class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Seluruh Items (Limit 1000)</h2>
             </div>
-            <div id="inventoryContainer" class="space-y-2"></div>
+            <div id="inventoryContainer" class="space-y-3"></div>
+            <button onclick="toggleAllItemsModal(true)" class="w-full py-4 bg-slate-800 text-white rounded-2xl text-[10px] font-bold uppercase tracking-widest hover:bg-slate-900 transition-all active:scale-95 shadow-lg mt-4">Lihat Seluruh Item</button>
         </section>
 
-        <!-- Detail Input Overlay -->
-        <section id="pageInputDetail" class="page-content p-5">
-            <button onclick="navigateTo('pageInputList', 'Input Opname')" class="mb-5 flex items-center text-blue-900 font-bold text-xs uppercase">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M15 19l-7-7 7-7" /></svg> Kembali
+        <!-- Detail Input Modal -->
+        <section id="pageInputDetail" class="page-content">
+            <button onclick="navigateTo('pageInputList', 'Stock Opname')" class="mb-5 flex items-center text-blue-600 font-extrabold text-[10px] uppercase tracking-widest">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M15 19l-7-7 7-7" /></svg> Kembali
             </button>
-            <div class="bg-white rounded-3xl shadow-xl p-6 border border-slate-100">
-                <div class="mb-6">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Material Number</p>
-                    <h2 id="detMaterial" class="text-2xl font-bold text-blue-950 tracking-tight">--</h2>
-                    <h3 id="detName" class="text-sm font-semibold text-slate-700 uppercase mt-2">--</h3>
-                    <div id="detMeta" class="flex flex-wrap gap-2 mt-4"></div>
+            <div class="bg-white rounded-[40px] shadow-2xl p-8 border border-slate-100">
+                <div class="mb-8">
+                    <div class="flex justify-between items-start mb-2">
+                        <p id="detMaterial" class="text-2xl font-black text-slate-900 leading-none">--</p>
+                        <span id="detUom" class="bg-slate-100 text-slate-500 text-[10px] font-extrabold px-3 py-1 rounded-lg uppercase tracking-tight">--</span>
+                    </div>
+                    <h3 id="detName" class="text-sm font-bold text-slate-500 uppercase leading-relaxed mb-4">--</h3>
+                    <div id="detGrid" class="grid grid-cols-2 gap-3 text-[10px] font-bold uppercase"></div>
                 </div>
+
                 <div class="grid grid-cols-2 gap-4 mb-8">
-                    <div class="bg-slate-50 p-5 rounded-2xl text-center">
-                        <p class="text-[10px] font-bold uppercase text-slate-400 mb-1">Stok SAP</p>
-                        <p id="detSystem" class="text-3xl font-bold text-slate-800">0</p>
+                    <div class="bg-slate-50 p-6 rounded-3xl text-center border border-slate-100">
+                        <p class="text-[9px] font-bold uppercase text-slate-400 mb-2">SOH System</p>
+                        <p id="detSystem" class="text-4xl font-black text-slate-900 tracking-tighter">0</p>
                     </div>
-                    <div class="bg-blue-50 p-5 rounded-2xl text-center border-2 border-blue-200">
-                        <p class="text-[10px] font-bold uppercase text-blue-600 mb-1">Fisik</p>
-                        <input type="number" id="fieldPhysical" inputmode="decimal" class="w-full bg-transparent text-3xl font-bold text-blue-900 text-center outline-none" placeholder="0">
+                    <div class="bg-blue-50 p-6 rounded-3xl text-center border-2 border-blue-200 ring-4 ring-blue-500/5">
+                        <p class="text-[9px] font-bold uppercase text-blue-600 mb-2">SOH Fisik</p>
+                        <input type="number" id="fieldPhysical" inputmode="decimal" class="w-full bg-transparent text-4xl font-black text-blue-700 text-center outline-none placeholder:text-blue-200" placeholder="0">
                     </div>
                 </div>
-                <button onclick="submitOpname()" class="w-full bg-blue-950 text-white font-bold py-4 rounded-xl uppercase text-xs tracking-widest">Update Hasil</button>
+                <button onclick="submitOpname()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl uppercase text-[11px] tracking-[0.2em] shadow-xl shadow-blue-600/30 active:scale-95 transition-all">Verifikasi & Simpan</button>
             </div>
         </section>
     </main>
 
-    <nav class="fixed bottom-0 left-0 right-0 bg-blue-950 h-20 flex justify-around items-center z-[100] shadow-2xl px-1">
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl h-24 flex justify-around items-center z-[500] border-t border-slate-100 px-2 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
         <button onclick="navigateTo('pageHistory', 'Riwayat')" id="nav-pageHistory" class="nav-item flex flex-col items-center w-1/5">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            <span class="text-[8px] font-bold uppercase mt-1">Riwayat</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <span class="text-[8px] font-extrabold uppercase mt-1.5 tracking-tighter">Riwayat</span>
         </button>
         <button onclick="navigateTo('pageDeviasi', 'Deviasi')" id="nav-pageDeviasi" class="nav-item flex flex-col items-center w-1/5">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-            <span class="text-[8px] font-bold uppercase mt-1">Deviasi</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+            <span class="text-[8px] font-extrabold uppercase mt-1.5 tracking-tighter">Selisih</span>
         </button>
-        <button onclick="navigateTo('pageInputList', 'Input Opname')" id="nav-pageInputList" class="nav-item active flex flex-col items-center w-1/5">
-            <div class="bg-blue-600 text-white p-3 rounded-xl shadow-xl -mt-10 border-4 border-blue-950">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M12 4v16m8-8H4" /></svg>
+        <button onclick="navigateTo('pageInputList', 'Stock Opname')" id="nav-pageInputList" class="nav-item active flex flex-col items-center w-1/5">
+            <div class="bg-blue-600 text-white p-4 rounded-2xl shadow-xl shadow-blue-500/40 -mt-10 border-4 border-white transition-all active:scale-90">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M12 4v16m8-8H4" /></svg>
             </div>
-            <span class="text-[8px] font-bold uppercase mt-2 text-blue-400">Scan</span>
+            <span class="text-[8px] font-extrabold uppercase mt-2 text-blue-600 tracking-tighter">Audit</span>
         </button>
-        <button onclick="navigateTo('pageDashboard', 'Dashboard')" id="nav-pageDashboard" class="nav-item flex flex-col items-center w-1/5">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-            <span class="text-[8px] font-bold uppercase mt-1">Stats</span>
+        <button onclick="navigateTo('pageDashboard', 'Overview')" id="nav-pageDashboard" class="nav-item flex flex-col items-center w-1/5">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+            <span class="text-[8px] font-extrabold uppercase mt-1.5 tracking-tighter">Stats</span>
         </button>
         <button onclick="navigateTo('pageInventory', 'Inventory')" id="nav-pageInventory" class="nav-item flex flex-col items-center w-1/5">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
-            <span class="text-[8px] font-bold uppercase mt-1">Items</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+            <span class="text-[8px] font-extrabold uppercase mt-1.5 tracking-tighter">Items</span>
         </button>
     </nav>
 
     <script>
-        // Ganti URL ini dengan Link CSV "Publish to Web" Google Sheets Anda
         const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSa-G_JUHJ4thrMO9Gxj5qbRMjAvNm22gW85xJ4FbXAwF02DcBdtqmjxWPhMZTAo3ejq3kc-ncNeBap/pub?output=csv";
         
         let inventory = [];
         let logs = [];
         let selectedMaterial = null;
 
+        // Simpan/Muat status dari LocalStorage
+        const getStoredStatus = () => JSON.parse(localStorage.getItem('bpr_check_status') || '{}');
+        const saveStatus = (data) => localStorage.setItem('bpr_check_status', JSON.stringify(data));
+
         window.onload = fetchSheetData;
 
         async function fetchSheetData() {
             document.getElementById('loading').style.display = 'flex';
+            document.getElementById('syncDot').classList.replace('bg-emerald-500', 'bg-amber-500');
+            
             try {
-                // Gunakan timestamp t= untuk menghindari cache browser agar data selalu terbaru
                 const response = await fetch(`${sheetUrl}&t=${new Date().getTime()}`);
-                const data = await response.text();
-                parseCSV(data);
-                document.getElementById('syncStatus').innerText = "Update: " + new Date().toLocaleTimeString('id-ID');
+                if (!response.ok) throw new Error("Gagal memuat data");
+                const csvData = await response.text();
+                parseCSV(csvData);
+                
+                const now = new Date();
+                const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+                const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+                
+                const formattedTime = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()} (${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')})`;
+                
+                document.getElementById('syncStatus').innerText = "Update: " + formattedTime;
+                document.getElementById('syncDot').classList.replace('bg-amber-500', 'bg-emerald-500');
             } catch (error) {
-                console.error("Gagal ambil data:", error);
-                alert("Koneksi Error. Pastikan link Spreadsheet sudah di-Publish ke Web sebagai CSV.");
+                document.getElementById('syncStatus').innerText = "Gagal Memuat Data - Hubungkan Internet";
+                document.getElementById('syncDot').classList.replace('bg-emerald-500', 'bg-rose-500');
+                renderEmptyStates("Gagal sinkronisasi data");
             } finally {
                 document.getElementById('loading').style.display = 'none';
             }
         }
 
-        function parseCSV(csvText) {
-            const lines = csvText.split(/\r?\n/);
-            if (lines.length < 2) return;
+        function renderEmptyStates(msg) {
+            const containers = ['inputItemContainer', 'inventoryContainer', 'historyList', 'deviasiList'];
+            containers.forEach(id => {
+                document.getElementById(id).innerHTML = `<div class="empty-state">${msg}</div>`;
+            });
+        }
 
+        function parseCSV(csvText) {
+            const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== "");
+            if (lines.length < 2) {
+                renderEmptyStates("Format data tidak sesuai");
+                return;
+            }
             const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
             
-            // Pencarian kolom dinamis berdasarkan kata kunci di header Excel Anda
-            const colIdx = {
+            const col = {
                 mat: headers.findIndex(h => h.includes('material') && !h.includes('desc')),
                 desc: headers.findIndex(h => h.includes('description')),
                 mne: headers.findIndex(h => h.includes('mnemonic')),
@@ -185,24 +246,50 @@
                 part: headers.findIndex(h => h.includes('part no'))
             };
 
+            const storedStatus = getStoredStatus();
+
             inventory = lines.slice(1).map(line => {
                 const row = parseCSVRow(line);
                 if (row.length < headers.length) return null;
+                const matNum = row[col.mat] || '';
+                const currentSoh = parseFloat(row[col.soh]) || 0;
                 
+                // Logika Pengecekan 30 Hari & Update SOH
+                const audit = storedStatus[matNum];
+                let statusMsg = "Belum Di Cek";
+                let statusColor = "bg-slate-100 text-slate-500";
+                let isVerified = false;
+
+                if (audit) {
+                    const diffDays = Math.floor((new Date() - new Date(audit.date)) / (1000 * 60 * 60 * 24));
+                    if (audit.soh !== currentSoh) {
+                        statusMsg = "Cek Ulang (SOH Berubah)";
+                        statusColor = "bg-amber-100 text-amber-600 font-bold border border-amber-200";
+                    } else if (diffDays >= 30) {
+                        statusMsg = "Cek Ulang (>30 Hari)";
+                        statusColor = "bg-rose-100 text-rose-600 font-bold border border-rose-200";
+                    } else {
+                        statusMsg = "Sudah Di Cek";
+                        statusColor = "bg-emerald-100 text-emerald-600 font-bold border border-emerald-200";
+                        isVerified = true;
+                    }
+                }
+
                 return {
-                    material: row[colIdx.mat] || '',
-                    name: row[colIdx.desc] || '',
-                    mnemonic: row[colIdx.mne] || '',
-                    sloc: row[colIdx.sloc] || '',
-                    bin: row[colIdx.bin] || '',
-                    uom: row[colIdx.uom] || 'PC',
-                    part: row[colIdx.part] || '',
-                    system: parseFloat(row[colIdx.soh]) || 0,
-                    checked: false
+                    material: matNum,
+                    name: row[col.desc] || '',
+                    mnemonic: row[col.mne] || '',
+                    sloc: row[col.sloc] || '',
+                    bin: row[col.bin] || '',
+                    uom: row[col.uom] || 'PC',
+                    part: row[col.part] || '',
+                    system: currentSoh,
+                    statusMsg: statusMsg,
+                    statusColor: statusColor,
+                    verified: isVerified
                 };
             }).filter(i => i !== null && i.material !== '');
 
-            // Refresh semua tampilan agar data baru muncul
             renderInputList();
             renderInventoryList();
             renderDashboard();
@@ -221,35 +308,46 @@
             return res;
         }
 
-        // Halaman Opname (Menu 3)
+        function handleSearch() {
+            const activePage = document.querySelector('.page-content.active').id;
+            if (activePage === 'pageInputList') renderInputList();
+            if (activePage === 'pageInventory') renderInventoryList();
+        }
+
         function renderInputList() {
             const container = document.getElementById('inputItemContainer');
-            const q = document.getElementById('searchInput').value.toLowerCase();
+            const q = document.getElementById('mainSearch').value.toLowerCase();
             container.innerHTML = '';
             
             const filtered = inventory.filter(i => 
-                i.material.toLowerCase().includes(q) || 
-                i.name.toLowerCase().includes(q) || 
-                i.bin.toLowerCase().includes(q)
-            ).slice(0, 30); // Tampilkan 30 saja agar performa cepat
+                i.system > 0 && 
+                (i.material.toLowerCase().includes(q) || i.name.toLowerCase().includes(q) || i.part.toLowerCase().includes(q) || i.bin.toLowerCase().includes(q))
+            );
             
-            filtered.forEach(i => {
+            document.getElementById('itemCountLabel').innerText = `${filtered.length} Item SOH > 0`;
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="empty-state">Tidak ada item SOH > 0 ${q ? 'yang cocok' : 'saat ini'}</div>`;
+                return;
+            }
+
+            filtered.slice(0, 100).forEach(i => {
                 const card = document.createElement('div');
-                card.className = `bg-white rounded-xl shadow-sm border border-slate-200 p-4 active:scale-95 transition-all cursor-pointer ${i.checked ? 'card-status-ok' : 'card-status-none'}`;
+                card.className = `bg-white rounded-3xl p-5 card-shadow border border-slate-100 transition-all active:scale-95 cursor-pointer relative overflow-hidden`;
                 card.onclick = () => openDetail(i);
                 card.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <div class="flex-1 overflow-hidden">
-                            <div class="flex gap-2 mb-1">
-                                <span class="text-[8px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded uppercase">${i.sloc}</span>
-                                <span class="text-[8px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded uppercase">${i.bin}</span>
-                            </div>
-                            <h3 class="text-sm font-bold text-blue-950">${i.material}</h3>
-                            <p class="text-[10px] text-slate-500 uppercase truncate">${i.name}</p>
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="${i.statusColor} status-badge">${i.statusMsg}</span>
+                        <p class="text-[9px] font-extrabold text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase tracking-tighter">${i.bin}</p>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <div class="flex-1 overflow-hidden pr-4">
+                            <h3 class="text-sm font-black text-slate-800">${i.material}</h3>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase truncate">${i.name}</p>
                         </div>
-                        <div class="text-right ml-2 border-l pl-3 border-slate-100">
-                            <p class="text-[8px] font-bold text-slate-300">SOH</p>
-                            <p class="text-lg font-bold text-slate-800">${i.system}</p>
+                        <div class="text-right border-l border-slate-100 pl-4">
+                            <p class="text-[8px] font-extrabold text-slate-300 uppercase tracking-widest">SOH</p>
+                            <p class="text-lg font-black text-slate-900">${i.system}</p>
                         </div>
                     </div>
                 `;
@@ -257,142 +355,169 @@
             });
         }
 
-        // Halaman Inventory (Menu 5) - FULL DINAMIS
         function renderInventoryList() {
             const container = document.getElementById('inventoryContainer');
-            const q = document.getElementById('inventorySearch').value.toLowerCase();
+            const q = document.getElementById('mainSearch').value.toLowerCase();
             container.innerHTML = '';
             
-            // Mengambil data langsung dari variabel inventory (Hasil Sync)
             const filtered = inventory.filter(i => 
-                i.material.toLowerCase().includes(q) || 
-                i.name.toLowerCase().includes(q) || 
-                i.mnemonic.toLowerCase().includes(q)
-            );
-            
-            if(filtered.length === 0) {
-                container.innerHTML = `<p class="text-center py-10 text-xs font-bold text-slate-300 uppercase tracking-widest">Item tidak ditemukan</p>`;
+                i.material.toLowerCase().includes(q) || i.name.toLowerCase().includes(q) || i.part.toLowerCase().includes(q)
+            ).slice(0, 1000);
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="empty-state">Data item tidak ditemukan</div>`;
                 return;
             }
 
-            filtered.slice(0, 100).forEach(i => {
+            filtered.forEach(i => {
                 const item = document.createElement('div');
-                item.className = "bg-white p-3 rounded-xl border border-slate-200 flex justify-between items-center shadow-sm";
+                item.className = "bg-white p-4 rounded-2xl border border-slate-100 flex justify-between items-center";
+                item.onclick = () => openDetail(i);
                 item.innerHTML = `
-                    <div class="flex-1 overflow-hidden mr-2">
-                        <div class="flex items-center gap-1.5">
-                           <p class="text-[10px] font-bold text-blue-900">${i.material}</p>
-                           <span class="text-[7px] text-slate-400 font-bold px-1 bg-slate-50 border border-slate-100 rounded">${i.mnemonic}</span>
-                        </div>
-                        <p class="text-[9px] text-slate-500 uppercase truncate font-medium">${i.name}</p>
+                    <div class="flex-1 overflow-hidden">
+                        <p class="text-[10px] font-black text-blue-900">${i.material}</p>
+                        <p class="text-[9px] text-slate-400 font-bold uppercase truncate w-3/4">${i.name}</p>
                     </div>
-                    <div class="text-right">
-                        <p class="text-[11px] font-bold text-slate-800">${i.system} <span class="text-[8px] text-slate-400 uppercase">${i.uom}</span></p>
-                        <p class="text-[7px] text-blue-400 font-bold uppercase tracking-tighter">${i.bin}</p>
+                    <div class="text-right ml-4">
+                        <p class="text-xs font-black text-slate-800 leading-none mb-1">${i.system} ${i.uom}</p>
+                        <span class="text-[8px] font-extrabold text-blue-500 uppercase bg-blue-50 px-1.5 py-0.5 rounded">${i.bin}</span>
                     </div>
                 `;
                 container.appendChild(item);
             });
         }
 
+        function toggleAllItemsModal(show) {
+            const modal = document.getElementById('modalAllItems');
+            const container = document.getElementById('fullInventoryContainer');
+            if (show) {
+                modal.classList.add('active');
+                container.innerHTML = '';
+                if (inventory.length === 0) {
+                    container.innerHTML = `<div class="empty-state">Data Master Kosong</div>`;
+                } else {
+                    inventory.forEach(i => {
+                        const div = document.createElement('div');
+                        div.className = "bg-white p-4 rounded-2xl border border-slate-100 flex justify-between items-center shadow-sm active:scale-95 transition-all";
+                        div.onclick = () => { openDetail(i); modal.classList.remove('active'); };
+                        div.innerHTML = `
+                            <div>
+                                <p class="text-xs font-black text-slate-800">${i.material}</p>
+                                <p class="text-[9px] text-slate-400 font-bold uppercase truncate w-48">${i.name}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-black text-xs text-blue-600">${i.system}</p>
+                                <p class="text-[8px] text-slate-300 font-bold uppercase">${i.uom}</p>
+                            </div>`;
+                        container.appendChild(div);
+                    });
+                }
+            } else {
+                modal.classList.remove('active');
+            }
+        }
+
         function openDetail(item) {
             selectedMaterial = item;
             document.getElementById('detMaterial').innerText = item.material;
             document.getElementById('detName').innerText = item.name;
+            document.getElementById('detUom').innerText = item.uom;
             document.getElementById('detSystem').innerText = item.system;
-            document.getElementById('detMeta').innerHTML = `
-                <span class="bg-blue-900 text-white px-2 py-1 rounded text-[9px] font-bold uppercase">${item.mnemonic}</span>
-                <span class="bg-blue-50 text-blue-600 px-2 py-1 rounded text-[9px] font-bold uppercase">Bin: ${item.bin}</span>
-                <span class="bg-slate-100 text-slate-400 px-2 py-1 rounded text-[9px] font-bold uppercase">P/N: ${item.part}</span>
+            document.getElementById('detGrid').innerHTML = `
+                <div class="bg-slate-50 p-3 rounded-xl"><p class="text-slate-400 mb-0.5 tracking-tight">Mnemonic</p><p class="text-slate-800 truncate">${item.mnemonic || '-'}</p></div>
+                <div class="bg-slate-50 p-3 rounded-xl"><p class="text-slate-400 mb-0.5 tracking-tight">Part No</p><p class="text-slate-800 truncate">${item.part || '-'}</p></div>
+                <div class="bg-slate-50 p-3 rounded-xl"><p class="text-slate-400 mb-0.5 tracking-tight">Sloc</p><p class="text-slate-800">${item.sloc}</p></div>
+                <div class="bg-slate-50 p-3 rounded-xl"><p class="text-slate-400 mb-0.5 tracking-tight">Storage Bin</p><p class="text-blue-600">${item.bin}</p></div>
             `;
             document.getElementById('fieldPhysical').value = '';
-            navigateTo('pageInputDetail', 'Audit Fisik');
+            navigateTo('pageInputDetail', 'Audit Item');
             setTimeout(() => document.getElementById('fieldPhysical').focus(), 300);
         }
 
         function submitOpname() {
-            const phys = parseFloat(document.getElementById('fieldPhysical').value);
-            if(isNaN(phys)) return;
-            
+            const val = document.getElementById('fieldPhysical').value;
+            if (val === '') return;
+            const phys = parseFloat(val);
             const diff = phys - selectedMaterial.system;
-            selectedMaterial.checked = true;
             
-            // Simpan log aksi
-            logs.unshift({ material: selectedMaterial.material, time: new Date().toLocaleTimeString(), diff: diff });
+            // Simpan status pengecekan
+            const stored = getStoredStatus();
+            stored[selectedMaterial.material] = {
+                date: new Date().toISOString(),
+                soh: selectedMaterial.system,
+                physical: phys
+            };
+            saveStatus(stored);
+
+            logs.unshift({ material: selectedMaterial.material, time: new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}), diff: diff, type: diff === 0 ? 'MATCH' : 'SELISIH' });
             
             showToast();
-            renderDashboard();
-            renderHistory();
-            renderDeviasi();
-            setTimeout(() => navigateTo('pageInputList', 'Input Opname'), 300);
-            renderInputList();
+            fetchSheetData(); 
+            navigateTo('pageInputList', 'Stock Opname');
         }
 
         function renderHistory() {
             const list = document.getElementById('historyList');
-            if(logs.length === 0) return;
+            if (logs.length === 0) { 
+                list.innerHTML = `<div class="empty-state">Belum ada riwayat aktivitas audit hari ini</div>`; 
+                return; 
+            }
             list.innerHTML = logs.map(l => `
-                <div class="bg-white p-4 rounded-xl border-l-4 ${l.diff === 0 ? 'border-emerald-500' : 'border-rose-500'} flex justify-between items-center shadow-sm">
+                <div class="bg-white p-5 rounded-3xl border border-slate-100 flex justify-between items-center shadow-sm">
                     <div>
-                        <div class="text-[10px] font-bold text-slate-800">${l.material}</div>
-                        <div class="text-[8px] text-slate-400 uppercase font-medium">${l.time}</div>
+                        <div class="text-[11px] font-black text-slate-800 uppercase tracking-tight">${l.material}</div>
+                        <div class="text-[9px] text-slate-400 font-bold uppercase mt-0.5">${l.time}</div>
                     </div>
-                    <span class="text-[9px] font-bold uppercase ${l.diff === 0 ? 'text-emerald-600' : 'text-rose-600'}">${l.diff === 0 ? 'Match' : 'Deviasi: ' + l.diff}</span>
+                    <span class="text-[9px] font-black uppercase ${l.type === 'MATCH' ? 'text-emerald-500' : 'text-rose-500'}">${l.type} ${l.diff !== 0 ? ': ' + l.diff : ''}</span>
                 </div>
             `).join('');
         }
 
         function renderDeviasi() {
             const list = document.getElementById('deviasiList');
-            const deviasiItems = logs.filter(l => l.diff !== 0);
-            if(deviasiItems.length === 0) {
-                list.innerHTML = `<p class="text-center py-10 text-[10px] text-slate-300 uppercase font-bold tracking-widest">Tidak ada deviasi</p>`;
-                return;
+            const devItems = logs.filter(l => l.diff !== 0);
+            if (devItems.length === 0) { 
+                list.innerHTML = `<div class="empty-state">Belum ada temuan selisih stok</div>`; 
+                return; 
             }
-            list.innerHTML = deviasiItems.map(l => `
-                <div class="bg-rose-50 p-4 rounded-xl border border-rose-100 flex justify-between items-center">
-                    <div>
-                        <div class="text-[10px] font-bold text-rose-900">${l.material}</div>
-                        <div class="text-[8px] text-rose-400 font-medium">${l.time}</div>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-[12px] font-bold text-rose-600">${l.diff > 0 ? '+' : ''}${l.diff}</p>
-                        <p class="text-[7px] font-bold text-rose-300 uppercase">Selisih</p>
-                    </div>
+            list.innerHTML = devItems.map(l => `
+                <div class="bg-rose-50 p-5 rounded-3xl border border-rose-100 flex justify-between items-center">
+                    <div><p class="text-[11px] font-black text-rose-900 uppercase">${l.material}</p><p class="text-[8px] text-rose-400 font-bold">${l.time}</p></div>
+                    <p class="text-lg font-black text-rose-600">${l.diff > 0 ? '+' : ''}${l.diff}</p>
                 </div>
             `).join('');
         }
 
         function renderDashboard() {
             const total = inventory.length;
-            const checked = inventory.filter(i => i.checked).length;
-            document.getElementById('dashChecked').innerText = checked;
+            if (total === 0) return;
+            const verifiedCount = inventory.filter(i => i.verified).length;
+            
+            document.getElementById('dashChecked').innerText = verifiedCount;
             document.getElementById('dashTotal').innerText = total;
-            document.getElementById('dashBar').style.width = (total > 0 ? (checked/total)*100 : 0) + "%";
+            document.getElementById('dashBar').style.width = (verifiedCount/total*100) + "%";
         }
 
         function navigateTo(id, title) {
             document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             document.getElementById('headerTitle').innerText = title;
+            document.getElementById('searchContainer').style.display = (id === 'pageInputList' || id === 'pageInventory') ? 'block' : 'none';
             
             document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
-            const targetNav = id === 'pageInputDetail' ? 'pageInputList' : id;
+            if (id === 'pageHistory') renderHistory();
+            if (id === 'pageDeviasi') renderDeviasi();
+
+            const targetNav = (id === 'pageInputDetail') ? 'pageInputList' : id;
             const n = document.getElementById('nav-' + targetNav);
             if(n) n.classList.add('active');
-            
-            // Re-render konten setiap pindah tab agar data selalu segar
-            if(id === 'pageInventory') renderInventoryList();
-            if(id === 'pageHistory') renderHistory();
-            if(id === 'pageDeviasi') renderDeviasi();
-            
             window.scrollTo(0,0);
         }
 
         function showToast() {
             const t = document.getElementById("toast");
             t.className = "show";
-            setTimeout(() => t.className = t.className.replace("show", ""), 2000);
+            setTimeout(() => t.className = t.className.replace("show", ""), 2500);
         }
     </script>
 </body>
