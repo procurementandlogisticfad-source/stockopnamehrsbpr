@@ -11,198 +11,210 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: antialiased; background-color: #f8fafc; }
         .page-content { display: none; }
         .page-content.active { display: block; }
-        .nav-item { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; color: #94a3b8; }
-        .nav-item.active { color: #3b82f6; }
-        .status-badge { font-size: 8px; font-weight: 800; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
-        .card-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); }
-        #toast { visibility: hidden; min-width: 250px; background-color: #1e293b; color: #fff; text-align: center; border-radius: 16px; padding: 16px; position: fixed; z-index: 1000; left: 50%; bottom: 100px; transform: translateX(-50%); font-size: 13px; font-weight: 600; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); }
+        
+        /* Navigation Styling */
+        .nav-item { transition: all 0.2s ease; cursor: pointer; color: #94a3b8; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; z-index: 10; }
+        .nav-item.active { color: #ffffff; }
+        
+        /* Stats Button Highlight */
+        .nav-stats-prominent {
+            position: absolute;
+            top: -24px;
+            width: 56px;
+            height: 56px;
+            background: #2563eb;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
+            border: 4px solid #0f172a;
+            transition: all 0.3s ease;
+        }
+        .nav-item.active .nav-stats-prominent {
+            background: #ffffff;
+            color: #1e3a8a;
+            transform: translateY(-2px);
+        }
+
+        .card-shadow { box-shadow: 0 4px 12px -1px rgba(0, 0, 0, 0.05); }
+        
+        .detail-item { padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
+        .detail-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+        .detail-value { font-size: 14px; font-weight: 600; color: #1e293b; }
+        
+        #toast { visibility: hidden; min-width: 200px; background-color: #1e293b; color: #fff; text-align: center; border-radius: 12px; padding: 14px; position: fixed; z-index: 3000; left: 50%; bottom: 120px; transform: translateX(-50%); font-size: 13px; font-weight: 600; }
         #toast.show { visibility: visible; animation: fadeinout 2.5s; }
-        @keyframes fadeinout { 0% { bottom: 80px; opacity: 0; } 15% { bottom: 100px; opacity: 1; } 85% { bottom: 100px; opacity: 1; } 100% { bottom: 80px; opacity: 0; } }
-        .modal-all-items { position: fixed; inset: 0; background: white; z-index: 1000; display: none; flex-direction: column; }
-        .modal-all-items.active { display: flex; }
-        .empty-state { padding: 60px 20px; text-align: center; color: #94a3b8; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; }
-        .back-btn { display: flex; items-center: center; gap: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #3b82f6; margin-bottom: 16px; }
+        @keyframes fadeinout { 0% { opacity: 0; bottom: 100px; } 15% { opacity: 1; bottom: 120px; } 85% { opacity: 1; bottom: 120px; } 100% { opacity: 0; bottom: 100px; } }
     </style>
 </head>
 <body class="text-slate-900">
 
-    <!-- Loading State -->
-    <div id="loading" class="fixed inset-0 bg-white/90 z-[3000] flex flex-col items-center justify-center">
-        <div class="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p class="text-[10px] font-extrabold text-blue-950 uppercase tracking-[0.2em]">Memuat Data BPR...</p>
+    <!-- Loading Screen -->
+    <div id="loading" class="fixed inset-0 bg-slate-900 z-[4000] flex flex-col items-center justify-center">
+        <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p class="text-[10px] font-bold text-blue-400 uppercase tracking-[0.2em]">Sinkronisasi Data</p>
     </div>
 
     <div id="toast">Data Berhasil Disimpan</div>
 
-    <!-- Modal Full Inventory -->
-    <div id="modalAllItems" class="modal-all-items">
-        <div class="p-5 border-b flex justify-between items-center bg-white sticky top-0 z-10">
-            <h2 class="text-sm font-bold text-slate-800 uppercase tracking-tight">Daftar Lengkap Inventory</h2>
-            <button onclick="toggleAllItemsModal(false)" class="p-2 bg-slate-100 rounded-full">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+    <!-- Header Navy -->
+    <header class="bg-slate-900 text-white sticky top-0 z-[1000] px-6 py-6 shadow-xl">
+        <div class="max-w-md mx-auto flex justify-between items-center">
+            <div>
+                <h1 id="headerTitle" class="text-lg font-extrabold tracking-tight">Statistik Pengecekan</h1>
+                <p id="syncStatus" class="text-[9px] font-bold text-blue-400 uppercase tracking-widest mt-0.5">Memuat...</p>
+            </div>
+            <button onclick="fetchSheetData()" class="p-2.5 bg-white/10 text-white rounded-xl border border-white/10 active:scale-95 transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
             </button>
         </div>
-        <div class="p-4 overflow-y-auto flex-1 bg-slate-50">
-            <div id="fullInventoryContainer" class="space-y-2 pb-10"></div>
-        </div>
-    </div>
-
-    <!-- Header Section -->
-    <header class="bg-blue-950 text-white pt-8 pb-12 px-6 rounded-b-[40px] shadow-2xl relative overflow-hidden">
-        <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
-        <div class="max-w-md mx-auto relative z-10">
-            <div class="flex justify-between items-start mb-6">
-                <div>
-                    <h1 id="headerTitle" class="text-lg font-extrabold tracking-tight">Stock Opname</h1>
-                    <div class="flex items-center gap-2 mt-1">
-                        <span id="syncDot" class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-                        <p id="syncStatus" class="text-[9px] font-bold text-blue-300 uppercase leading-tight">Menghubungkan Database...</p>
-                    </div>
-                </div>
-                <button onclick="fetchSheetData()" class="p-3 bg-white/10 hover:bg-white/20 rounded-2xl backdrop-blur-md transition-all active:scale-90">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                </button>
-            </div>
-            
-            <div id="searchContainer" class="relative group">
-                <input type="text" id="mainSearch" onkeyup="handleSearch()" placeholder="Cari Material, PN, atau Bin..." 
-                       class="w-full bg-white/10 border border-white/20 p-4 pl-12 rounded-2xl text-sm font-medium placeholder:text-blue-300/60 focus:bg-white focus:text-slate-900 focus:ring-4 focus:ring-blue-500/20 outline-none transition-all">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-4 top-1/2 -translate-y-1/2 text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+        
+        <!-- Search Bar -->
+        <div id="searchContainer" class="max-w-md mx-auto mt-5 hidden">
+            <div class="relative">
+                <input type="text" id="mainSearch" onkeyup="handleSearch()" placeholder="Cari Material / Bin..." 
+                       class="w-full bg-white/5 border border-white/10 p-3.5 pl-11 rounded-2xl text-sm placeholder:text-slate-500 focus:bg-white focus:text-slate-900 outline-none transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
             </div>
         </div>
     </header>
 
-    <main class="max-w-md mx-auto -mt-6 px-4 pb-32">
+    <main class="max-w-md mx-auto px-6 py-8 pb-40">
         
-        <!-- Page: Opname (Scan) -->
-        <section id="pageInputList" class="page-content active space-y-4">
-            <button onclick="navigateTo('pageDashboard', 'Overview')" class="back-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M15 19l-7-7 7-7" /></svg> Kembali ke Dashboard
-            </button>
-            <div class="flex justify-between items-center px-1">
-                <h2 class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Input Opname (SOH > 0)</h2>
-                <span id="itemCountLabel" class="text-[9px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">0 Item</span>
-            </div>
-            <div id="inputItemContainer" class="space-y-4"></div>
-        </section>
-
-        <!-- Page: History -->
+        <!-- Tab 1: Riwayat -->
         <section id="pageHistory" class="page-content space-y-4">
-            <button onclick="navigateTo('pageDashboard', 'Overview')" class="back-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M15 19l-7-7 7-7" /></svg> Kembali ke Dashboard
-            </button>
-            <h2 class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Riwayat Perubahan</h2>
-            <div id="historyList" class="space-y-3"></div>
+            <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest px-1">Log Pengecekan Terbaru</p>
+            <div id="historyContainer" class="space-y-3"></div>
         </section>
 
-        <!-- Page: Deviasi -->
-        <section id="pageDeviasi" class="page-content space-y-4">
-            <button onclick="navigateTo('pageDashboard', 'Overview')" class="back-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M15 19l-7-7 7-7" /></svg> Kembali ke Dashboard
-            </button>
-            <h2 class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest text-rose-500">Temuan Selisih Stok</h2>
-            <div id="deviasiList" class="space-y-3"></div>
+        <!-- Tab 2: Deviasi -->
+        <section id="pageDeviation" class="page-content space-y-4">
+            <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest px-1">Daftar Selisih Stok</p>
+            <div id="deviationContainer" class="space-y-3"></div>
         </section>
 
-        <!-- Page: Dashboard -->
-        <section id="pageDashboard" class="page-content space-y-6">
-            <div class="bg-white p-8 rounded-[32px] border border-slate-100 shadow-xl text-center">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-6 text-center">Kepatuhan Opname Bulanan</p>
-                <div class="flex justify-around items-end mb-8">
-                    <div>
-                        <p class="text-5xl font-black text-blue-600" id="dashChecked">0</p>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase mt-1">Verified</p>
+        <!-- Tab 3: Statistik (Halaman Awal) -->
+        <section id="pageStats" class="page-content active space-y-6">
+            <div class="bg-white p-7 rounded-[28px] border border-slate-100 shadow-sm relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-16 -mt-16 opacity-50"></div>
+                <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-[0.2em] mb-8 text-center">Progress Audit</p>
+                <div class="flex justify-around items-center mb-8 relative z-10">
+                    <div class="text-center">
+                        <p class="text-5xl font-black text-blue-600 tracking-tighter" id="dashChecked">0</p>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase mt-2">Verified</p>
                     </div>
                     <div class="w-px h-12 bg-slate-100"></div>
-                    <div>
+                    <div class="text-center">
                         <p class="text-2xl font-extrabold text-slate-800" id="dashTotal">0</p>
                         <p class="text-[10px] font-bold text-slate-400 uppercase mt-1">Total SKU</p>
                     </div>
                 </div>
                 <div class="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
-                    <div id="dashBar" class="h-full bg-blue-600 transition-all duration-1000 shadow-inner" style="width: 0%"></div>
+                    <div id="dashBar" class="h-full bg-blue-600 transition-all duration-1000 rounded-full" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-emerald-50 border border-emerald-100 p-5 rounded-[22px]">
+                    <p class="text-[9px] font-extrabold text-emerald-600 uppercase tracking-widest">Match</p>
+                    <p id="statMatch" class="text-2xl font-black text-emerald-700 mt-1">0</p>
+                </div>
+                <div class="bg-rose-50 border border-rose-100 p-5 rounded-[22px]">
+                    <p class="text-[9px] font-extrabold text-rose-600 uppercase tracking-widest">Deviasi</p>
+                    <p id="statDiff" class="text-2xl font-black text-rose-700 mt-1">0</p>
                 </div>
             </div>
             
-            <div class="grid grid-cols-2 gap-4">
-                <button onclick="navigateTo('pageInputList', 'Stock Opname')" class="bg-blue-600 p-5 rounded-[24px] text-white text-left card-shadow">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-                    <p class="text-[11px] font-black uppercase tracking-widest leading-none">Mulai Audit</p>
-                    <p class="text-[8px] text-blue-200 font-bold uppercase mt-1">Input Stok Fisik</p>
-                </button>
-                <button onclick="navigateTo('pageInventory', 'Inventory')" class="bg-white p-5 rounded-[24px] text-slate-800 text-left border border-slate-100 card-shadow">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
-                    <p class="text-[11px] font-black uppercase tracking-widest leading-none">Cari Item</p>
-                    <p class="text-[8px] text-slate-400 font-bold uppercase mt-1">Database Barang</p>
-                </button>
+            <div class="bg-white p-5 rounded-[22px] border border-slate-100 flex justify-between items-center">
+                <span class="text-[11px] font-bold text-slate-400 uppercase">Belum Terverifikasi</span>
+                <span id="statPending" class="text-lg font-black text-slate-400">0</span>
             </div>
         </section>
 
-        <!-- Page: Inventory (Items) -->
-        <section id="pageInventory" class="page-content space-y-4">
-            <button onclick="navigateTo('pageDashboard', 'Overview')" class="back-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M15 19l-7-7 7-7" /></svg> Kembali ke Dashboard
-            </button>
+        <!-- Tab 4: Stock Opname -->
+        <section id="pageAudit" class="page-content space-y-4">
             <div class="flex justify-between items-center px-1">
-                <h2 class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Seluruh Items (Limit 1000)</h2>
+                <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Item SOH > 0</p>
+                <span id="auditCount" class="text-[10px] font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full">0 Item</span>
             </div>
-            <div id="inventoryContainer" class="space-y-3"></div>
-            <button onclick="toggleAllItemsModal(true)" class="w-full py-4 bg-slate-800 text-white rounded-2xl text-[10px] font-bold uppercase tracking-widest hover:bg-slate-900 transition-all active:scale-95 shadow-lg mt-4">Lihat Seluruh Item</button>
+            <div id="auditContainer" class="space-y-3"></div>
         </section>
 
-        <!-- Detail Input Modal -->
-        <section id="pageInputDetail" class="page-content">
-            <button onclick="navigateTo('pageInputList', 'Stock Opname')" class="back-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M15 19l-7-7 7-7" /></svg> Kembali ke Daftar
+        <!-- Tab 5: Inventory -->
+        <section id="pageInventory" class="page-content space-y-3">
+            <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest px-1">Seluruh Database</p>
+            <div id="inventoryContainer" class="space-y-2"></div>
+        </section>
+
+        <!-- Detail Page -->
+        <section id="pageDetail" class="page-content">
+            <button onclick="navigateTo('pageAudit', 'Stock Opname')" class="flex items-center gap-2 text-blue-600 mb-6 font-extrabold text-[11px] uppercase tracking-widest">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M15 19l-7-7 7-7" /></svg> Kembali
             </button>
-            <div class="bg-white rounded-[40px] shadow-2xl p-8 border border-slate-100">
-                <div class="mb-8">
-                    <div class="flex justify-between items-start mb-2">
-                        <p id="detMaterial" class="text-2xl font-black text-slate-900 leading-none">--</p>
-                        <span id="detUom" class="bg-slate-100 text-slate-500 text-[10px] font-extrabold px-3 py-1 rounded-lg uppercase tracking-tight">--</span>
-                    </div>
-                    <h3 id="detName" class="text-sm font-bold text-slate-500 uppercase leading-relaxed mb-4">--</h3>
-                    <div id="detGrid" class="grid grid-cols-2 gap-3 text-[10px] font-bold uppercase"></div>
+            <div class="bg-white rounded-[28px] shadow-sm border border-slate-100 overflow-hidden">
+                <div class="p-6 bg-slate-50 border-b border-slate-100">
+                    <p class="detail-label text-blue-600">Material Number</p>
+                    <h3 id="detMaterial" class="text-xl font-black text-slate-900 tracking-tight leading-none">--</h3>
                 </div>
-
-                <div class="grid grid-cols-2 gap-4 mb-8">
-                    <div class="bg-slate-50 p-6 rounded-3xl text-center border border-slate-100">
-                        <p class="text-[9px] font-bold uppercase text-slate-400 mb-2">SOH System</p>
-                        <p id="detSystem" class="text-4xl font-black text-slate-900 tracking-tighter">0</p>
+                <div class="p-6 space-y-2">
+                    <div class="detail-item"><p class="detail-label">Material Description</p><p id="detDesc" class="detail-value leading-tight">--</p></div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="detail-item"><p class="detail-label">Mnemonic</p><p id="detMne" class="detail-value">--</p></div>
+                        <div class="detail-item"><p class="detail-label">Part No</p><p id="detPart" class="detail-value">--</p></div>
                     </div>
-                    <div class="bg-blue-50 p-6 rounded-3xl text-center border-2 border-blue-200 ring-4 ring-blue-500/5">
-                        <p class="text-[9px] font-bold uppercase text-blue-600 mb-2">SOH Fisik</p>
-                        <input type="number" id="fieldPhysical" inputmode="decimal" class="w-full bg-transparent text-4xl font-black text-blue-700 text-center outline-none placeholder:text-blue-200" placeholder="0">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="detail-item"><p class="detail-label">UOM</p><p id="detUom" class="detail-value">--</p></div>
+                        <div class="detail-item"><p class="detail-label">Sloc</p><p id="detSloc" class="detail-value">--</p></div>
                     </div>
+                    <div class="detail-item"><p class="detail-label">Storage Bin</p><p id="detBin" class="detail-value text-blue-600 font-extrabold text-base">--</p></div>
+                    
+                    <div class="flex gap-4 mt-8">
+                        <div class="flex-1 bg-slate-50 p-5 rounded-2xl text-center border border-slate-100">
+                            <p class="detail-label">System</p>
+                            <p id="detSoh" class="text-3xl font-black text-slate-800">0</p>
+                        </div>
+                        <div class="flex-1 bg-blue-50 p-5 rounded-2xl text-center border border-blue-200 ring-2 ring-blue-500/10">
+                            <p class="detail-label text-blue-600">Physical</p>
+                            <input type="number" id="inputPhysical" class="w-full bg-transparent text-3xl font-black text-center text-blue-700 outline-none" placeholder="0">
+                        </div>
+                    </div>
+                    <button onclick="saveAudit()" class="w-full mt-8 bg-blue-600 text-white font-black py-5 rounded-2xl shadow-lg shadow-blue-200 active:scale-95 transition-all uppercase text-[11px] tracking-[0.15em]">Konfirmasi Verifikasi</button>
                 </div>
-                <button onclick="submitOpname()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl uppercase text-[11px] tracking-[0.2em] shadow-xl shadow-blue-600/30 active:scale-95 transition-all">Verifikasi & Simpan</button>
             </div>
         </section>
+
     </main>
 
-    <!-- Bottom Navigation -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl h-24 flex justify-around items-center z-[500] border-t border-slate-100 px-2 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
-        <button onclick="navigateTo('pageHistory', 'Riwayat')" id="nav-pageHistory" class="nav-item flex flex-col items-center w-1/5">
+    <!-- Bottom Nav Navy (5 Tab) -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-slate-900 h-20 flex justify-around items-center z-[2000] px-2 border-t border-white/5">
+        
+        <button onclick="navigateTo('pageHistory', 'Riwayat')" id="nav-pageHistory" class="nav-item">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            <span class="text-[8px] font-extrabold uppercase mt-1.5 tracking-tighter">Riwayat</span>
+            <span class="text-[8px] font-bold mt-1 uppercase tracking-tighter opacity-70">Riwayat</span>
         </button>
-        <button onclick="navigateTo('pageDeviasi', 'Deviasi')" id="nav-pageDeviasi" class="nav-item flex flex-col items-center w-1/5">
+
+        <button onclick="navigateTo('pageDeviation', 'Deviasi')" id="nav-pageDeviation" class="nav-item">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-            <span class="text-[8px] font-extrabold uppercase mt-1.5 tracking-tighter">Selisih</span>
+            <span class="text-[8px] font-bold mt-1 uppercase tracking-tighter opacity-70">Deviasi</span>
         </button>
-        <button onclick="navigateTo('pageDashboard', 'Overview')" id="nav-pageDashboard-main" class="nav-item active flex flex-col items-center w-1/5">
-            <div class="bg-blue-600 text-white p-4 rounded-2xl shadow-xl shadow-blue-500/40 -mt-10 border-4 border-white transition-all active:scale-90">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+
+        <!-- Stats Highlight -->
+        <button onclick="navigateTo('pageStats', 'Statistik Pengecekan')" id="nav-pageStats" class="nav-item active">
+            <div class="nav-stats-prominent">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
             </div>
-            <span class="text-[8px] font-extrabold uppercase mt-2 text-blue-600 tracking-tighter">Home</span>
+            <span class="text-[8px] font-bold mt-10 uppercase tracking-tighter">Statistik</span>
         </button>
-        <button onclick="navigateTo('pageInputList', 'Stock Opname')" id="nav-pageInputList" class="nav-item flex flex-col items-center w-1/5">
+
+        <button onclick="navigateTo('pageAudit', 'Stock Opname')" id="nav-pageAudit" class="nav-item">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-            <span class="text-[8px] font-extrabold uppercase mt-1.5 tracking-tighter">Audit</span>
+            <span class="text-[8px] font-bold mt-1 uppercase tracking-tighter opacity-70">Opname</span>
         </button>
-        <button onclick="navigateTo('pageInventory', 'Inventory')" id="nav-pageInventory" class="nav-item flex flex-col items-center w-1/5">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
-            <span class="text-[8px] font-extrabold uppercase mt-1.5 tracking-tighter">Items</span>
+
+        <button onclick="navigateTo('pageInventory', 'Inventory')" id="nav-pageInventory" class="nav-item">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+            <span class="text-[8px] font-bold mt-1 uppercase tracking-tighter opacity-70">Inventory</span>
         </button>
     </nav>
 
@@ -211,41 +223,46 @@
         
         let inventory = [];
         let logs = [];
-        let selectedMaterial = null;
+        let selectedItem = null;
 
-        const getStoredStatus = () => JSON.parse(localStorage.getItem('bpr_check_status') || '{}');
-        const saveStatus = (data) => localStorage.setItem('bpr_check_status', JSON.stringify(data));
+        const getStore = () => JSON.parse(localStorage.getItem('bpr_pro_final_v1') || '{}');
+        const setStore = (data) => localStorage.setItem('bpr_pro_final_v1', JSON.stringify(data));
+
+        function formatLastUpdate() {
+            const now = new Date();
+            const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+            const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+            
+            const dayName = days[now.getDay()];
+            const date = now.getDate();
+            const monthName = months[now.getMonth()];
+            const year = now.getFullYear();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            
+            return `Update: ${dayName}, ${date} ${monthName} ${year} (${hours}:${minutes})`;
+        }
 
         window.onload = fetchSheetData;
 
         async function fetchSheetData() {
             document.getElementById('loading').style.display = 'flex';
-            document.getElementById('syncDot').classList.replace('bg-emerald-500', 'bg-amber-500');
-            
             try {
                 const response = await fetch(`${sheetUrl}&t=${new Date().getTime()}`);
-                if (!response.ok) throw new Error("Gagal memuat data");
                 const csvData = await response.text();
                 parseCSV(csvData);
-                
-                const now = new Date();
-                const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-                const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-                
-                const formattedTime = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()} (${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')})`;
-                
-                document.getElementById('syncStatus').innerText = "Update: " + formattedTime;
-                document.getElementById('syncDot').classList.replace('bg-amber-500', 'bg-emerald-500');
+                document.getElementById('syncStatus').innerText = formatLastUpdate();
             } catch (error) {
-                document.getElementById('syncStatus').innerText = "Sync Gagal - Offline";
-                document.getElementById('syncDot').classList.replace('bg-emerald-500', 'bg-rose-500');
+                document.getElementById('syncStatus').innerText = "Koneksi Bermasalah";
             } finally {
-                document.getElementById('loading').style.display = 'none';
+                setTimeout(() => {
+                    document.getElementById('loading').style.display = 'none';
+                }, 500);
             }
         }
 
         function parseCSV(csvText) {
-            const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== "");
+            const lines = csvText.split(/\r?\n/).filter(l => l.trim() !== "");
             if (lines.length < 2) return;
             const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
             
@@ -260,272 +277,213 @@
                 part: headers.findIndex(h => h.includes('part no'))
             };
 
-            const storedStatus = getStoredStatus();
+            const store = getStore();
 
             inventory = lines.slice(1).map(line => {
                 const row = parseCSVRow(line);
-                if (row.length < headers.length) return null;
                 const matNum = row[col.mat] || '';
-                const currentSoh = parseFloat(row[col.soh]) || 0;
-                
-                const audit = storedStatus[matNum];
-                let statusMsg = "Belum Di Cek";
-                let statusColor = "bg-slate-100 text-slate-500";
-                let isVerified = false;
-
-                if (audit) {
-                    const diffDays = Math.floor((new Date() - new Date(audit.date)) / (1000 * 60 * 60 * 24));
-                    if (audit.soh !== currentSoh) {
-                        statusMsg = "Cek Ulang (SOH Berubah)";
-                        statusColor = "bg-amber-100 text-amber-600 font-bold border border-amber-200";
-                    } else if (diffDays >= 30) {
-                        statusMsg = "Cek Ulang (>30 Hari)";
-                        statusColor = "bg-rose-100 text-rose-600 font-bold border border-rose-200";
-                    } else {
-                        statusMsg = "Sudah Di Cek";
-                        statusColor = "bg-emerald-100 text-emerald-600 font-bold border border-emerald-200";
-                        isVerified = true;
-                    }
-                }
+                const systemSoh = parseFloat(row[col.soh]) || 0;
+                const audit = store[matNum];
 
                 return {
                     material: matNum,
                     name: row[col.desc] || '',
                     mnemonic: row[col.mne] || '',
+                    part: row[col.part] || '',
+                    uom: row[col.uom] || '',
                     sloc: row[col.sloc] || '',
                     bin: row[col.bin] || '',
-                    uom: row[col.uom] || 'PC',
-                    part: row[col.part] || '',
-                    system: currentSoh,
-                    statusMsg: statusMsg,
-                    statusColor: statusColor,
-                    verified: isVerified
+                    system: systemSoh,
+                    verified: !!audit,
+                    phys: audit ? audit.physical : null,
+                    diff: audit ? (audit.physical - systemSoh) : 0
                 };
-            }).filter(i => i !== null && i.material !== '');
+            }).filter(i => i.material !== '');
 
-            renderInputList();
-            renderInventoryList();
-            renderDashboard();
+            updateUI();
         }
 
         function parseCSVRow(text) {
             const res = [];
             let p = '', inQuotes = false;
             for (let i = 0; i < text.length; i++) {
-                let c = text[i];
-                if (c === '"') inQuotes = !inQuotes;
-                else if (c === ',' && !inQuotes) { res.push(p.trim()); p = ''; }
-                else p += c;
+                if (text[i] === '"') inQuotes = !inQuotes;
+                else if (text[i] === ',' && !inQuotes) { res.push(p.trim()); p = ''; }
+                else p += text[i];
             }
             res.push(p.trim());
             return res;
         }
 
-        function handleSearch() {
-            const activePage = document.querySelector('.page-content.active').id;
-            if (activePage === 'pageInputList') renderInputList();
-            if (activePage === 'pageInventory') renderInventoryList();
+        function updateUI() {
+            renderStats();
+            renderAuditList();
+            renderInventory();
+            renderDeviation();
+            renderHistory();
         }
 
-        function renderInputList() {
-            const container = document.getElementById('inputItemContainer');
+        function renderStats() {
+            const total = inventory.length;
+            const checked = inventory.filter(i => i.verified).length;
+            const match = inventory.filter(i => i.verified && i.diff === 0).length;
+            const diff = inventory.filter(i => i.verified && i.diff !== 0).length;
+
+            document.getElementById('dashChecked').innerText = checked;
+            document.getElementById('dashTotal').innerText = total;
+            document.getElementById('dashBar').style.width = total > 0 ? (checked/total*100) + "%" : "0%";
+            document.getElementById('statMatch').innerText = match;
+            document.getElementById('statDiff').innerText = diff;
+            document.getElementById('statPending').innerText = total - checked;
+        }
+
+        function renderAuditList() {
+            const container = document.getElementById('auditContainer');
             const q = document.getElementById('mainSearch').value.toLowerCase();
             container.innerHTML = '';
             
             const filtered = inventory.filter(i => 
-                i.system > 0 && 
-                (i.material.toLowerCase().includes(q) || i.name.toLowerCase().includes(q) || i.part.toLowerCase().includes(q) || i.bin.toLowerCase().includes(q))
+                i.system > 0 && (i.material.toLowerCase().includes(q) || i.bin.toLowerCase().includes(q))
             );
-            
-            document.getElementById('itemCountLabel').innerText = `${filtered.length} Item`;
 
-            if (filtered.length === 0) {
-                container.innerHTML = `<div class="empty-state">Data Kosong / Tidak Ditemukan</div>`;
-                return;
-            }
-
-            filtered.slice(0, 100).forEach(i => {
-                const card = document.createElement('div');
-                card.className = `bg-white rounded-3xl p-5 card-shadow border border-slate-100 transition-all active:scale-95 cursor-pointer relative overflow-hidden`;
-                card.onclick = () => openDetail(i);
-                card.innerHTML = `
-                    <div class="flex justify-between items-start mb-3">
-                        <span class="${i.statusColor} status-badge">${i.statusMsg}</span>
-                        <p class="text-[9px] font-extrabold text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase tracking-tighter">${i.bin}</p>
+            filtered.slice(0, 40).forEach(i => {
+                const div = document.createElement('div');
+                div.className = `bg-white p-4 rounded-2xl border ${i.verified ? 'border-blue-200' : 'border-slate-100'} card-shadow flex justify-between items-center active:scale-[0.98] transition-all`;
+                div.onclick = () => showDetail(i);
+                div.innerHTML = `
+                    <div class="overflow-hidden mr-2">
+                        <div class="flex items-center gap-2 mb-1">
+                             <span class="text-[8px] font-black bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded tracking-tighter uppercase">${i.bin || 'NO BIN'}</span>
+                             ${i.verified ? '<span class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span>' : ''}
+                        </div>
+                        <h4 class="text-sm font-extrabold text-slate-800 tracking-tight">${i.material}</h4>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase truncate">${i.name}</p>
                     </div>
-                    <div class="flex justify-between items-center">
-                        <div class="flex-1 overflow-hidden pr-4">
-                            <h3 class="text-sm font-black text-slate-800">${i.material}</h3>
-                            <p class="text-[10px] font-bold text-slate-400 uppercase truncate">${i.name}</p>
-                        </div>
-                        <div class="text-right border-l border-slate-100 pl-4">
-                            <p class="text-[8px] font-extrabold text-slate-300 uppercase tracking-widest">SOH</p>
-                            <p class="text-lg font-black text-slate-900">${i.system}</p>
-                        </div>
+                    <div class="text-right">
+                        <p class="text-lg font-black text-slate-900 leading-none">${i.system}</p>
+                        <p class="text-[8px] text-slate-400 font-bold uppercase mt-1">${i.uom}</p>
                     </div>
                 `;
-                container.appendChild(card);
+                container.appendChild(div);
             });
+            document.getElementById('auditCount').innerText = `${filtered.length} Item`;
         }
 
-        function renderInventoryList() {
+        function renderInventory() {
             const container = document.getElementById('inventoryContainer');
             const q = document.getElementById('mainSearch').value.toLowerCase();
             container.innerHTML = '';
-            
-            const filtered = inventory.filter(i => 
-                i.material.toLowerCase().includes(q) || i.name.toLowerCase().includes(q) || i.part.toLowerCase().includes(q)
-            ).slice(0, 1000);
-
-            if (filtered.length === 0) {
-                container.innerHTML = `<div class="empty-state">Item tidak ditemukan</div>`;
-                return;
-            }
-
-            filtered.forEach(i => {
-                const item = document.createElement('div');
-                item.className = "bg-white p-4 rounded-2xl border border-slate-100 flex justify-between items-center";
-                item.onclick = () => openDetail(i);
-                item.innerHTML = `
-                    <div class="flex-1 overflow-hidden">
-                        <p class="text-[10px] font-black text-blue-900">${i.material}</p>
-                        <p class="text-[9px] text-slate-400 font-bold uppercase truncate w-3/4">${i.name}</p>
+            inventory.filter(i => i.material.toLowerCase().includes(q) || i.name.toLowerCase().includes(q)).slice(0, 40).forEach(i => {
+                const div = document.createElement('div');
+                div.className = "bg-white p-4 rounded-2xl border border-slate-100 flex justify-between items-center";
+                div.onclick = () => showDetail(i);
+                div.innerHTML = `
+                    <div class="overflow-hidden">
+                        <p class="text-[11px] font-black text-slate-800 tracking-tight">${i.material}</p>
+                        <p class="text-[9px] text-slate-400 font-bold uppercase truncate">${i.name}</p>
                     </div>
-                    <div class="text-right ml-4">
-                        <p class="text-xs font-black text-slate-800 leading-none mb-1">${i.system} ${i.uom}</p>
-                        <span class="text-[8px] font-extrabold text-blue-500 uppercase bg-blue-50 px-1.5 py-0.5 rounded">${i.bin}</span>
-                    </div>
+                    <p class="text-xs font-black text-blue-600 ml-4">${i.system}</p>
                 `;
-                container.appendChild(item);
+                container.appendChild(div);
             });
         }
 
-        function toggleAllItemsModal(show) {
-            const modal = document.getElementById('modalAllItems');
-            const container = document.getElementById('fullInventoryContainer');
-            if (show) {
-                modal.classList.add('active');
-                container.innerHTML = '';
-                if (inventory.length === 0) {
-                    container.innerHTML = `<div class="empty-state">Data Master Kosong</div>`;
-                } else {
-                    inventory.forEach(i => {
-                        const div = document.createElement('div');
-                        div.className = "bg-white p-4 rounded-2xl border border-slate-100 flex justify-between items-center mb-2 shadow-sm active:scale-95 transition-all";
-                        div.onclick = () => { openDetail(i); modal.classList.remove('active'); };
-                        div.innerHTML = `
-                            <div>
-                                <p class="text-xs font-black text-slate-800">${i.material}</p>
-                                <p class="text-[9px] text-slate-400 font-bold uppercase truncate w-48">${i.name}</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="font-black text-xs text-blue-600">${i.system}</p>
-                                <p class="text-[8px] text-slate-300 font-bold uppercase">${i.uom}</p>
-                            </div>`;
-                        container.appendChild(div);
-                    });
-                }
-            } else {
-                modal.classList.remove('active');
+        function renderDeviation() {
+            const container = document.getElementById('deviationContainer');
+            container.innerHTML = '';
+            const list = inventory.filter(i => i.verified && i.diff !== 0);
+            if (list.length === 0) {
+                container.innerHTML = `<div class="p-16 text-center"><p class="text-slate-300 font-black text-[10px] uppercase tracking-widest">Tidak Ada Selisih</p></div>`;
+                return;
             }
-        }
-
-        function openDetail(item) {
-            selectedMaterial = item;
-            document.getElementById('detMaterial').innerText = item.material;
-            document.getElementById('detName').innerText = item.name;
-            document.getElementById('detUom').innerText = item.uom;
-            document.getElementById('detSystem').innerText = item.system;
-            document.getElementById('detGrid').innerHTML = `
-                <div class="bg-slate-50 p-3 rounded-xl"><p class="text-slate-400 mb-0.5 tracking-tight">Mnemonic</p><p class="text-slate-800 truncate">${item.mnemonic || '-'}</p></div>
-                <div class="bg-slate-50 p-3 rounded-xl"><p class="text-slate-400 mb-0.5 tracking-tight">Part No</p><p class="text-slate-800 truncate">${item.part || '-'}</p></div>
-                <div class="bg-slate-50 p-3 rounded-xl"><p class="text-slate-400 mb-0.5 tracking-tight">Sloc</p><p class="text-slate-800">${item.sloc}</p></div>
-                <div class="bg-slate-50 p-3 rounded-xl"><p class="text-slate-400 mb-0.5 tracking-tight">Storage Bin</p><p class="text-blue-600">${item.bin}</p></div>
-            `;
-            document.getElementById('fieldPhysical').value = '';
-            navigateTo('pageInputDetail', 'Audit Item');
-            setTimeout(() => document.getElementById('fieldPhysical').focus(), 300);
-        }
-
-        function submitOpname() {
-            const val = document.getElementById('fieldPhysical').value;
-            if (val === '') return;
-            const phys = parseFloat(val);
-            const diff = phys - selectedMaterial.system;
-            
-            const stored = getStoredStatus();
-            stored[selectedMaterial.material] = {
-                date: new Date().toISOString(),
-                soh: selectedMaterial.system,
-                physical: phys
-            };
-            saveStatus(stored);
-
-            logs.unshift({ material: selectedMaterial.material, time: new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}), diff: diff, type: diff === 0 ? 'MATCH' : 'SELISIH' });
-            
-            showToast();
-            fetchSheetData(); 
-            navigateTo('pageInputList', 'Stock Opname');
+            list.forEach(i => {
+                const div = document.createElement('div');
+                div.className = "bg-white p-4 rounded-2xl border-l-4 border-l-rose-500 border-slate-100 card-shadow flex justify-between items-center";
+                div.onclick = () => showDetail(i);
+                div.innerHTML = `
+                    <div>
+                        <p class="text-xs font-black text-slate-800">${i.material}</p>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase mt-0.5">SOH: ${i.system} ➔ Fisik: ${i.phys}</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs font-black text-rose-600 bg-rose-50 px-2 py-1 rounded-lg">${i.diff > 0 ? '+'+i.diff : i.diff}</span>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
         }
 
         function renderHistory() {
-            const list = document.getElementById('historyList');
-            if (logs.length === 0) { 
-                list.innerHTML = `<div class="empty-state">Tidak ada riwayat aktivitas</div>`; 
-                return; 
+            const container = document.getElementById('historyContainer');
+            container.innerHTML = '';
+            if (logs.length === 0) {
+                container.innerHTML = `<div class="p-16 text-center"><p class="text-slate-300 font-black text-[10px] uppercase tracking-widest">Kosong</p></div>`;
+                return;
             }
-            list.innerHTML = logs.map(l => `
-                <div class="bg-white p-5 rounded-3xl border border-slate-100 flex justify-between items-center shadow-sm">
+            logs.slice(0, 20).forEach(l => {
+                const div = document.createElement('div');
+                div.className = "bg-white p-4 rounded-2xl border border-slate-100 flex justify-between items-center";
+                div.innerHTML = `
                     <div>
-                        <div class="text-[11px] font-black text-slate-800 uppercase tracking-tight">${l.material}</div>
-                        <div class="text-[9px] text-slate-400 font-bold uppercase mt-0.5">${l.time}</div>
+                        <p class="text-[11px] font-black text-slate-800 leading-none mb-1">${l.mat}</p>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">${l.time}</p>
                     </div>
-                    <span class="text-[9px] font-black uppercase ${l.type === 'MATCH' ? 'text-emerald-500' : 'text-rose-500'}">${l.type} ${l.diff !== 0 ? ': ' + l.diff : ''}</span>
-                </div>
-            `).join('');
+                    <span class="text-[9px] font-black ${l.diff === 0 ? 'text-emerald-600' : 'text-rose-600'}">
+                        ${l.diff === 0 ? 'MATCH' : 'DIFF ' + l.diff}
+                    </span>
+                `;
+                container.appendChild(div);
+            });
         }
 
-        function renderDeviasi() {
-            const list = document.getElementById('deviasiList');
-            const devItems = logs.filter(l => l.diff !== 0);
-            if (devItems.length === 0) { 
-                list.innerHTML = `<div class="empty-state">Tidak ada selisih stok</div>`; 
-                return; 
-            }
-            list.innerHTML = devItems.map(l => `
-                <div class="bg-rose-50 p-5 rounded-3xl border border-rose-100 flex justify-between items-center">
-                    <div><p class="text-[11px] font-black text-rose-900 uppercase">${l.material}</p><p class="text-[8px] text-rose-400 font-bold">${l.time}</p></div>
-                    <p class="text-lg font-black text-rose-600">${l.diff > 0 ? '+' : ''}${l.diff}</p>
-                </div>
-            `).join('');
+        function showDetail(item) {
+            selectedItem = item;
+            document.getElementById('detMaterial').innerText = item.material;
+            document.getElementById('detDesc').innerText = item.name;
+            document.getElementById('detMne').innerText = item.mnemonic || '-';
+            document.getElementById('detPart').innerText = item.part || '-';
+            document.getElementById('detUom').innerText = item.uom;
+            document.getElementById('detSloc').innerText = item.sloc;
+            document.getElementById('detBin').innerText = item.bin || '-';
+            document.getElementById('detSoh').innerText = item.system;
+            document.getElementById('inputPhysical').value = item.phys !== null ? item.phys : '';
+            navigateTo('pageDetail', 'Detail Verifikasi');
+            setTimeout(() => document.getElementById('inputPhysical').focus(), 300);
         }
 
-        function renderDashboard() {
-            const total = inventory.length;
-            if (total === 0) return;
-            const verifiedCount = inventory.filter(i => i.verified).length;
-            
-            document.getElementById('dashChecked').innerText = verifiedCount;
-            document.getElementById('dashTotal').innerText = total;
-            document.getElementById('dashBar').style.width = (verifiedCount/total*100) + "%";
+        function saveAudit() {
+            const val = document.getElementById('inputPhysical').value;
+            if (val === '') return;
+            const physicalVal = parseFloat(val);
+            const store = getStore();
+            store[selectedItem.material] = { date: new Date().toISOString(), physical: physicalVal };
+            setStore(store);
+            logs.unshift({ mat: selectedItem.material, time: new Date().toLocaleTimeString('id-ID'), diff: physicalVal - selectedItem.system });
+            showToast();
+            fetchSheetData();
+            navigateTo('pageAudit', 'Stock Opname');
         }
 
         function navigateTo(id, title) {
             document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             document.getElementById('headerTitle').innerText = title;
-            document.getElementById('searchContainer').style.display = (id === 'pageInputList' || id === 'pageInventory') ? 'block' : 'none';
             
-            document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
-            if (id === 'pageHistory') renderHistory();
-            if (id === 'pageDeviasi') renderDeviasi();
+            const needsSearch = ['pageAudit', 'pageInventory'].includes(id);
+            document.getElementById('searchContainer').classList.toggle('hidden', !needsSearch);
 
-            // Handle bottom nav activation
-            const targetNav = (id === 'pageInputDetail' || id === 'pageInputList') ? 'pageInputList' : 
-                             (id === 'pageDashboard') ? 'pageDashboard-main' : id;
-            const n = document.getElementById('nav-' + targetNav);
-            if(n) n.classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            const mainId = id === 'pageDetail' ? 'pageAudit' : id;
+            const btn = document.getElementById('nav-' + mainId);
+            if (btn) btn.classList.add('active');
+            
             window.scrollTo(0,0);
+        }
+
+        function handleSearch() {
+            const activePage = document.querySelector('.page-content.active').id;
+            if(activePage === 'pageAudit') renderAuditList();
+            if(activePage === 'pageInventory') renderInventory();
         }
 
         function showToast() {
